@@ -42,7 +42,7 @@ export default function FxConnectivity() {
   const reducedMotion = useReducedMotion();
 
   return <motion.div
-    className="relative z-10 mx-auto w-full min-w-0 max-w-[650px] py-6 lg:py-0"
+    className="relative z-10 mx-auto w-full min-w-0 max-w-[40.625rem] py-6 lg:py-0"
     initial={reducedMotion ? false : { opacity: 0, scale: 0.96, x: 24 }}
     animate={{ opacity: 1, scale: 1, x: 0 }}
     transition={{ duration: 0.75, delay: 0.12, ease: "easeOut" }}
@@ -52,10 +52,10 @@ export default function FxConnectivity() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_0%,rgba(168,197,186,.18),transparent_36%)]" />
       <div className="relative flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.18em] text-[#A8C5BA]"><Globe2 size={14} /> CORPORATE FX CONNECTIVITY</div>
+          <div className="flex items-center gap-2 text-[0.625rem] font-bold tracking-[0.18em] text-[#A8C5BA]"><Globe2 size={14} /> CORPORATE FX CONNECTIVITY</div>
           <p className="mt-2 text-sm text-white/45">One partner moving money across borders</p>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-[#A8C5BA]/25 bg-[#A8C5BA]/10 px-3 py-2 text-[10px] font-bold text-[#A8C5BA]" data-testid="hero-connectivity-badge"><span className="h-1.5 w-1.5 rounded-full bg-[#A8C5BA]" /> AUD BASE · GLOBAL</div>
+        <div className="flex items-center gap-2 rounded-full border border-[#A8C5BA]/25 bg-[#A8C5BA]/10 px-3 py-2 text-[0.625rem] font-bold text-[#A8C5BA]" data-testid="hero-connectivity-badge"><span className="h-1.5 w-1.5 rounded-full bg-[#A8C5BA]" /> AUD BASE · GLOBAL</div>
       </div>
 
       <motion.svg
@@ -106,14 +106,14 @@ export default function FxConnectivity() {
 
         {NODES.map(({ code, x, y, r, base }, index) => <motion.g key={code} style={{ transformBox: "fill-box", transformOrigin: "center" }} variants={pop(base ? 0.2 : 0.4 + index * 0.09)}>
           <circle cx={x} cy={y} r={r} fill={base ? "#2D6A4F" : "#1C382E"} stroke={SAGE} strokeOpacity={base ? 0.95 : 0.4} strokeWidth={base ? 2.5 : 1.5} />
-          <text x={x} y={y + (base ? 5 : 4)} textAnchor="middle" fill="#FFFFFF" className={base ? "text-[17px] sm:text-[14px]" : "text-[15px] sm:text-[12px]"} fontWeight={700} letterSpacing=".04em">{code}</text>
+          <text x={x} y={y + (base ? 5 : 4)} textAnchor="middle" fill="#FFFFFF" className={base ? "text-[1.0625rem] sm:text-[0.875rem]" : "text-[0.9375rem] sm:text-[0.75rem]"} fontWeight={700} letterSpacing=".04em">{code}</text>
         </motion.g>)}
       </motion.svg>
 
       <div className="relative mt-4 flex flex-wrap gap-2">
         {SOLUTIONS.map(([Icon, label]) => <span key={label} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-white/75" data-testid={`hero-solution-${label.toLowerCase()}`}><Icon size={14} className="text-[#A8C5BA]" />{label}</span>)}
       </div>
-      <p className="relative mt-4 text-[11px] text-white/40" data-testid="hero-connectivity-caption">Treasury, hedging and payments on one rail · same-day or T+1 settlement</p>
+      <p className="relative mt-4 text-[0.6875rem] text-white/40" data-testid="hero-connectivity-caption">Treasury, hedging and payments on one rail · same-day or T+1 settlement</p>
     </div>
   </motion.div>;
 }

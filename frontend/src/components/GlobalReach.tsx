@@ -69,7 +69,7 @@ export default function GlobalReach() {
       </Reveal>
 
       <Reveal from="scale" delay={0.1} className="flex justify-center">
-        <div className="w-full max-w-[560px]">
+        <div className="w-full max-w-[35rem]">
           <FlagGlobe
             markers={MARKERS}
             connections={CONNECTIONS}
@@ -81,7 +81,7 @@ export default function GlobalReach() {
             glowColor="#52796F"
             markerDots
             flagScale={0.032}
-            style={{ width: "min(560px, 100%)" }}
+            style={{ width: "min(35rem, 100%)" }}
             data-testid="global-reach-globe"
           />
           <p className="mt-5 text-center text-xs leading-5 text-white/40" data-testid="global-reach-compliance">Indicative corridors between approved markets; sanctioned jurisdictions are excluded.</p>

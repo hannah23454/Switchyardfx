@@ -117,6 +117,13 @@
     }
 }
 
+/* Site scale: from tablet width up, the root font size is 90% of the browser default, so every
+   rem-based size (Tailwind text, spacing, widths) renders the way the site looked at 90% browser
+   zoom. Phones keep the full 16px base so text and form fields stay readable (and iOS doesn't
+   zoom into inputs). Media queries in rem still resolve against the browser default, so the
+   breakpoints themselves don't move. */
+@media (min-width: 640px) { html { font-size: 90%; } }
+
 body { top: 0 !important; }
 #google_translate_element { position: fixed; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; z-index: -1; }
 .goog-te-banner-frame.skiptranslate, .goog-te-balloon-frame, #goog-gt-tt, .goog-tooltip { display: none !important; }

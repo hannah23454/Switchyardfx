@@ -45,7 +45,7 @@ function QuoteItem({ quote }: { quote: MarketTickerQuote }) {
   const up = quote.change >= 0;
   return (
     <li className="flex shrink-0 items-center gap-2.5 whitespace-nowrap" data-testid={`ticker-quote-${pair}`}>
-      <span className="text-[11px] font-bold tracking-[0.14em] text-[#A8C5BA]">{quote.pair}</span>
+      <span className="text-[0.6875rem] font-bold tracking-[0.14em] text-[#A8C5BA]">{quote.pair}</span>
       <span className="text-sm font-bold tabular-nums text-white" data-testid={`ticker-quote-rate-${pair}`}>{formatRate(quote.rate)}</span>
       <span className={`flex items-center gap-1 text-xs font-bold tabular-nums ${up ? "text-[#7FCEA4]" : "text-[#F0A0A0]"}`} data-testid={`ticker-quote-change-${pair}`}>{up ? <ArrowUpRight size={12} strokeWidth={3} /> : <ArrowDownRight size={12} strokeWidth={3} />}{formatChange(quote.change)}</span>
       <span aria-hidden="true" className="ml-3 h-1 w-1 shrink-0 rounded-full bg-white/20" />
@@ -58,7 +58,7 @@ function TickerSet({ quotes, ariaHidden = false }: { quotes: MarketTickerQuote[]
 }
 
 function PlaceholderSet() {
-  return <ul aria-hidden className="flex items-center gap-x-10">{SKELETON_PAIRS.map((pair) => <li key={pair} className="flex shrink-0 items-center gap-2.5 whitespace-nowrap opacity-50"><span className="text-[11px] font-bold tracking-[0.14em] text-[#A8C5BA]">{pair}</span><span className="text-sm font-bold text-white/50">• • •</span></li>)}</ul>;
+  return <ul aria-hidden className="flex items-center gap-x-10">{SKELETON_PAIRS.map((pair) => <li key={pair} className="flex shrink-0 items-center gap-2.5 whitespace-nowrap opacity-50"><span className="text-[0.6875rem] font-bold tracking-[0.14em] text-[#A8C5BA]">{pair}</span><span className="text-sm font-bold text-white/50">• • •</span></li>)}</ul>;
 }
 
 export default function FxTicker() {
@@ -93,7 +93,7 @@ export default function FxTicker() {
         <p className="text-sm font-bold">Live FX rates</p>
         <p className="text-xs text-white/50" data-testid="market-ticker-subtext" aria-live="polite">{subtext}</p>
       </div>
-      <span className={`ml-2 rounded-full border px-2.5 py-1 text-[10px] font-bold tracking-[0.14em] ${chip.chip}`} data-testid="market-ticker-badge">{chip.label}</span>
+      <span className={`ml-2 rounded-full border px-2.5 py-1 text-[0.625rem] font-bold tracking-[0.14em] ${chip.chip}`} data-testid="market-ticker-badge">{chip.label}</span>
     </div>
     <div className="ticker-viewport relative flex-1 overflow-hidden">
       {data && data.quotes.length > 0
