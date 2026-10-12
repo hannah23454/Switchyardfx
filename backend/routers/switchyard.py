@@ -2,6 +2,7 @@ import asyncio
 import html
 import logging
 import os
+import re
 import time
 from datetime import datetime, timezone
 
@@ -51,10 +52,13 @@ TICKER_FALLBACK = {
 
 
 def _ticker_symbols() -> tuple[str, ...]:
-    raw = os.environ.get("TWELVE_DATA_TICKER_SYMBOLS", "").strip()
-    if not raw:
-        return DEFAULT_TICKER_SYMBOLS
-    symbols = tuple(code.strip().upper() for code in raw.split(",") if code.strip())
+    # Tolerate stray quotes, spaces and newlines from a pasted value; anything that is not a
+    # "ABC/XYZ" pair is dropped, and with no valid pair left the defaults are used.
+    raw = os.environ.get("TWELVE_DATA_TICKER_SYMBOLS", "")
+    codes = (code.strip().strip("'\"").strip().upper() for code in re.split(r"[,\s]+", raw))
+    symbols = tuple(dict.fromkeys(code for code in codes if re.fullmatch(r"[A-Z]{3}/[A-Z]{3}", code)))
+    if raw.strip() and not symbols:
+        logger.warning("TWELVE_DATA_TICKER_SYMBOLS has no valid BASE/QUOTE pairs; using the defaults")
     return symbols or DEFAULT_TICKER_SYMBOLS
 
 
@@ -121,11 +125,8 @@ def _to_float(value: object) -> float | None:
 
 def _fallback_ticker(warning: str) -> MarketTickerResponse:
     now = datetime.now(timezone.utc)
-    legs = [
-        MarketTickerQuote(pair=pair, rate=rate, change=change)
-        for pair, (rate, change) in TICKER_FALLBACK.items()
-        if pair in TICKER_SYMBOLS
-    ]
+    # Always the full indicative board, whatever symbols are configured, so the strip is never empty.
+    legs = [MarketTickerQuote(pair=pair, rate=rate, change=change) for pair, (rate, change) in TICKER_FALLBACK.items()]
     return MarketTickerResponse(
         source="fallback",
         provider="Indicative fallback",

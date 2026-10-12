@@ -136,3 +136,15 @@ def test_board_calculates_crosses_from_usd_legs():
     assert board["AUD/USD"] is legs[0]
     assert "AUD/GBP" not in board and "EUR/GBP" not in board
     assert list(board)[:3] == ["AUD/USD", "AUD/JPY", "AUD/EUR"]
+
+
+def test_ticker_symbols_tolerate_pasted_values(monkeypatch):
+    from routers.switchyard import _ticker_symbols
+
+    monkeypatch.setenv("TWELVE_DATA_TICKER_SYMBOLS", '"aud/usd, USD/SGD\nUSD/SGD ,  usd/hkd"')
+    assert _ticker_symbols() == ("AUD/USD", "USD/SGD", "USD/HKD")
+    # A value with no usable pair (e.g. a number pasted into the wrong box) falls back to the defaults.
+    monkeypatch.setenv("TWELVE_DATA_TICKER_SYMBOLS", "60")
+    assert _ticker_symbols() == DEFAULT_TICKER_SYMBOLS
+    monkeypatch.delenv("TWELVE_DATA_TICKER_SYMBOLS")
+    assert _ticker_symbols() == DEFAULT_TICKER_SYMBOLS
