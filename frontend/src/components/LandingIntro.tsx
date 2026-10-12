@@ -50,7 +50,7 @@ export default function LandingIntro({ active }: { active: boolean }) {
       ><BrandMark className="h-12 w-auto" /></motion.div>
       <motion.p className="mt-6 text-2xl font-bold tracking-[-0.03em]" initial={reducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.2 }} data-testid="landing-intro-brand">SwitchYard</motion.p>
       <motion.div className="mt-3 h-px bg-[#A8C5BA]/60" initial={reducedMotion ? false : { width: 0 }} animate={{ width: 88 }} transition={{ duration: 0.38, delay: 0.28, ease: "easeOut" }} />
-      <motion.p className="mt-3 text-[10px] font-bold uppercase tracking-[0.28em] text-[#A8C5BA]" initial={reducedMotion ? false : { opacity: 0, letterSpacing: "0.45em" }} animate={{ opacity: 1, letterSpacing: "0.28em" }} transition={{ duration: 0.35, delay: 0.35 }} data-testid="landing-intro-tagline">Clarity in motion</motion.p>
+      <motion.p className="mt-3 text-[0.625rem] font-bold uppercase tracking-[0.28em] text-[#A8C5BA]" initial={reducedMotion ? false : { opacity: 0, letterSpacing: "0.45em" }} animate={{ opacity: 1, letterSpacing: "0.28em" }} transition={{ duration: 0.35, delay: 0.35 }} data-testid="landing-intro-tagline">Clarity in motion</motion.p>
     </div>
   </motion.div>}</AnimatePresence>;
 }
