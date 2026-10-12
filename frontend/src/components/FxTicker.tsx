@@ -1,14 +1,17 @@
+import type { CSSProperties } from "react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import type { MarketTickerQuote } from "@/lib/types";
 import { useMarketTicker } from "@/lib/useMarketTicker";
 
-// The live FX board under the hero: a marquee of AUD pairs pulled from the same server snapshots
-// GlobalReach uses. The strip is honest about provenance — LIVE when the backend has a fresh
+// The live FX board under the hero: a marquee of AUD crosses, USD majors and other crosses from
+// the server's /market/ticker snapshot (crosses are calculated from USD legs, and say so). The strip is honest about provenance — LIVE when the backend has a fresh
 // Twelve Data snapshot, DELAYED when a live snapshot has aged past its fresh window, INDICATIVE
 // on the labelled fallback — and pauses on hover. Under reduced motion the animation is removed
 // and the quotes wrap instead of scrolling. An unanimated sr-only list keeps the board readable
 // by assistive tech while the marquee is decorative.
-const SKELETON_PAIRS = ["AUD/USD", "AUD/EUR", "AUD/GBP", "AUD/JPY", "AUD/NZD", "AUD/CAD", "AUD/CHF", "AUD/CNY"];
+const SKELETON_PAIRS = ["AUD/USD", "AUD/EUR", "AUD/GBP", "AUD/NZD", "AUD/JPY", "AUD/CAD", "AUD/CHF", "AUD/CNY"];
+// Seconds of marquee per quote, so a longer board scrolls at the same reading speed.
+const SECONDS_PER_QUOTE = 5.6;
 
 type Badge = "live" | "delayed" | "indicative" | "loading" | "error";
 
@@ -66,7 +69,7 @@ export default function FxTicker() {
   if (data) {
     if (data.source === "live" && !data.delayed) {
       badge = "live";
-      subtext = `Updated ${formatUpdated(data.as_of)} · Twelve Data`;
+      subtext = `Updated ${formatUpdated(data.as_of)} · Twelve Data${data.quotes.some((quote) => quote.derived) ? " · crosses calculated" : ""}`;
     } else if (data.source === "live") {
       badge = "delayed";
       subtext = `Refreshed ${formatUpdated(data.as_of)} · delayed feed`;
@@ -94,10 +97,10 @@ export default function FxTicker() {
     </div>
     <div className="ticker-viewport relative flex-1 overflow-hidden">
       {data && data.quotes.length > 0
-        ? <div className="ticker-track flex w-max items-center"><TickerSet quotes={data.quotes} /><TickerSet quotes={data.quotes} ariaHidden /></div>
+        ? <div className="ticker-track flex w-max items-center" style={{ "--ticker-duration": `${Math.round(data.quotes.length * SECONDS_PER_QUOTE)}s` } as CSSProperties}><TickerSet quotes={data.quotes} /><TickerSet quotes={data.quotes} ariaHidden /></div>
         : <div className="flex w-max items-center"><PlaceholderSet /></div>}
     </div>
   </div>
-  <ul className="sr-only" data-testid="market-ticker-static">{data?.quotes.map((quote) => <li key={quote.pair}>{quote.pair} {formatRate(quote.rate)} {formatChange(quote.change)} · {data.source} {data.delayed ? "delayed" : "live"}</li>)}</ul>
+  <ul className="sr-only" data-testid="market-ticker-static">{data?.quotes.map((quote) => <li key={quote.pair}>{quote.pair} {formatRate(quote.rate)} {formatChange(quote.change)}{quote.derived ? " (calculated cross)" : ""} · {data.source} {data.delayed ? "delayed" : "live"}</li>)}</ul>
   </section>;
 }

@@ -47,6 +47,8 @@ class MarketTickerQuote(BaseModel):
     open: float | None = None
     high: float | None = None
     low: float | None = None
+    # True for a cross calculated from two fetched USD legs rather than quoted directly.
+    derived: bool = False
 
 
 class MarketTickerResponse(BaseModel):

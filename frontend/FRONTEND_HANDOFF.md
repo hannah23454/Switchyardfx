@@ -27,14 +27,18 @@ VITE_DATA_MODE=api
 The only frontend integration boundary is `src/services/switchyard.ts`. It currently expects:
 
 - `GET /api/market/overview` — server-proxied Twelve Data quotes and 15-minute AUD/USD candles, with an indicative fallback
-- `GET /api/market/ticker` — the home-page FX ticker board: eight AUD pairs (default), cached server-side per
-  `TWELVE_DATA_TICKER_TTL_SECONDS` (900s). Owns its own `TWELVE_DATA_API_KEY` request; honours the free-plan
-  credit budget. Every response is self-describing: `source` (`live`|`fallback`), `delayed` (a live snapshot
-  older than the fresh window, or any fallback), `refresh_seconds`, and a `warning` when not live — the
-  FxTicker renders LIVE / DELAYED / INDICATIVE badges from exactly these fields. Mocks it in
-  `src/data/mockSwitchyard.ts` (`MOCK_MARKET_TICKER`).
+- `GET /api/market/ticker` — the home-page FX ticker board: 24 pairs (AUD crosses, USD majors and other crosses)
+  calculated from eight fetched USD legs, cached server-side per `TWELVE_DATA_TICKER_TTL_SECONDS` (900s). Owns its
+  own `TWELVE_DATA_API_KEY` request; honours the free-plan credit budget. Every response is self-describing:
+  `source` (`live`|`fallback`), `delayed` (a live snapshot older than the fresh window, or any fallback),
+  `refresh_seconds`, a `warning` when not live, and `derived` on each calculated cross — the FxTicker renders
+  LIVE / DELAYED / INDICATIVE badges from exactly these fields. Mocks it in `src/data/mockSwitchyard.ts`
+  (`MOCK_MARKET_TICKER`).
 - `GET /api/fx/rates?base=AUD&quotes=USD,EUR,GBP`
 - `POST /api/submissions`
+- `/api/rewards/*` — SwitchYard Rewards (catalogue, member register/login/session/logout, voucher uploads,
+  reward requests, and staff approval routes under `/api/rewards/admin`). Sessions ride an httpOnly cookie.
+  The client is `src/lib/rewards.ts`; mock mode uses the browser-only store in `src/data/mockRewards.ts`.
 
 The corresponding hand-written TypeScript request/response contracts are in `src/lib/types.ts`. Change the service and those types together if the backend contract differs.
 

@@ -15,6 +15,7 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 from lib.db import client, db, ensure_indexes
 from routers.switchyard import router as switchyard_router
+from routers.rewards import router as rewards_router
 
 
 # Startup runs before the yield, shutdown after it. Add your own setup/teardown here.
@@ -38,6 +39,7 @@ async def root():
     return {"message": "Hello World"}
 
 api_router.include_router(switchyard_router)
+api_router.include_router(rewards_router)
 
 app.add_middleware(
     CORSMiddleware,

@@ -24,21 +24,38 @@ export async function getMockMarketOverview(): Promise<MarketOverviewResponse> {
   return { ...MOCK_MARKET_OVERVIEW, as_of: new Date().toISOString() };
 }
 
-// Mirrors the backend /market/ticker board (8 AUD pairs) so mock mode renders the same strip
-// the API returns. Values are indicative-only and always flagged as such.
+// Mirrors the backend /market/ticker fallback board (8 USD legs plus the 16 crosses calculated
+// from them) so mock mode renders the same strip the API returns. Values are indicative-only
+// and always flagged as such.
 export const MOCK_MARKET_TICKER: MarketTickerResponse = {
   source: "fallback",
   provider: "Indicative fallback",
   as_of: new Date().toISOString(),
   quotes: [
     { pair: "AUD/USD", rate: 0.6512, change: 0.48 },
-    { pair: "AUD/EUR", rate: 0.6018, change: -0.27 },
-    { pair: "AUD/GBP", rate: 0.5129, change: 0.92 },
-    { pair: "AUD/JPY", rate: 98.42, change: 0.35 },
-    { pair: "AUD/NZD", rate: 1.0842, change: -0.12 },
-    { pair: "AUD/CAD", rate: 0.8945, change: 0.21 },
-    { pair: "AUD/CHF", rate: 0.5713, change: -0.18 },
-    { pair: "AUD/CNY", rate: 4.712, change: 0.09 },
+    { pair: "AUD/EUR", rate: 0.6018, change: -0.27, derived: true },
+    { pair: "AUD/GBP", rate: 0.5129, change: 0.92, derived: true },
+    { pair: "AUD/NZD", rate: 1.0842, change: -0.12, derived: true },
+    { pair: "AUD/JPY", rate: 98.4224, change: 0.35, derived: true },
+    { pair: "AUD/CAD", rate: 0.8945, change: 0.21, derived: true },
+    { pair: "AUD/CHF", rate: 0.5713, change: -0.18, derived: true },
+    { pair: "AUD/CNY", rate: 4.712, change: 0.09, derived: true },
+    { pair: "EUR/USD", rate: 1.0821, change: 0.75 },
+    { pair: "GBP/USD", rate: 1.2696, change: -0.44 },
+    { pair: "NZD/USD", rate: 0.6006, change: 0.6 },
+    { pair: "USD/JPY", rate: 151.14, change: -0.13 },
+    { pair: "USD/CAD", rate: 1.3736, change: -0.27 },
+    { pair: "USD/CHF", rate: 0.8773, change: -0.66 },
+    { pair: "USD/CNY", rate: 7.2359, change: -0.39 },
+    { pair: "EUR/GBP", rate: 0.8523, change: 1.2, derived: true },
+    { pair: "EUR/JPY", rate: 163.55, change: 0.62, derived: true },
+    { pair: "GBP/JPY", rate: 191.89, change: -0.57, derived: true },
+    { pair: "EUR/CHF", rate: 0.9493, change: 0.09, derived: true },
+    { pair: "EUR/CAD", rate: 1.4864, change: 0.48, derived: true },
+    { pair: "GBP/CHF", rate: 1.1138, change: -1.1, derived: true },
+    { pair: "NZD/JPY", rate: 90.7747, change: 0.47, derived: true },
+    { pair: "CAD/JPY", rate: 110.03, change: 0.14, derived: true },
+    { pair: "CHF/JPY", rate: 172.28, change: 0.53, derived: true },
   ],
   delayed: true,
   refresh_seconds: 900,

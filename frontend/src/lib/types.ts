@@ -38,6 +38,8 @@ export interface MarketTickerQuote {
   open?: number | null;
   high?: number | null;
   low?: number | null;
+  /** True for a cross the server calculated from two USD legs rather than quoted directly. */
+  derived?: boolean;
 }
 
 export interface MarketTickerResponse {
