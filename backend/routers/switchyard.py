@@ -32,8 +32,9 @@ MARKET_SYMBOLS = ("AUD/USD", "AUD/EUR", "AUD/GBP")
 # 8 × 96 = 768 credits/day) and calculates every cross between them (AUD/EUR = AUD/USD ÷
 # EUR/USD), so one 8-credit fetch fills a 24-pair board. On a paid plan, add legs to
 # TWELVE_DATA_TICKER_SYMBOLS (e.g. "USD/SGD,USD/HKD") and the AUD crosses for them appear
-# automatically; lower TWELVE_DATA_TICKER_TTL_SECONDS to refresh more often. Symbols are
-# "BASE/QUOTE"; a symbol without USD is shown as fetched but is not used for crosses.
+# automatically; lower TWELVE_DATA_TICKER_TTL_SECONDS (down to 15) to refresh more often —
+# 60 or less keeps the board LIVE. 8 legs every 15s is 32 credits/minute, within Grow's 55.
+# Symbols are "BASE/QUOTE"; a symbol without USD is shown as fetched but is not used for crosses.
 DEFAULT_TICKER_SYMBOLS = ("AUD/USD", "EUR/USD", "GBP/USD", "NZD/USD", "USD/JPY", "USD/CAD", "USD/CHF", "USD/CNY")
 # Crosses shown after the AUD pairs and the USD majors, whenever both legs are available.
 TICKER_EXTRA_CROSSES = ("EUR/GBP", "EUR/JPY", "GBP/JPY", "EUR/CHF", "EUR/CAD", "GBP/CHF", "NZD/JPY", "CAD/JPY", "CHF/JPY")
@@ -63,7 +64,7 @@ def _ticker_symbols() -> tuple[str, ...]:
 
 
 TICKER_SYMBOLS = _ticker_symbols()
-TICKER_CACHE_SECONDS = max(60, int(os.environ.get("TWELVE_DATA_TICKER_TTL_SECONDS", "900") or "900"))
+TICKER_CACHE_SECONDS = max(15, int(os.environ.get("TWELVE_DATA_TICKER_TTL_SECONDS", "900") or "900"))
 # A cached live snapshot older than this reads as "delayed" rather than real time.
 LIVE_FRESH_SECONDS = 60
 FALLBACK_CANDLES = [
