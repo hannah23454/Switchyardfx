@@ -1,4 +1,4 @@
-import type { FxRatesResponse, MarketOverviewResponse, SubmissionPayload, SubmissionResponse } from "@/lib/types";
+import type { FxRatesResponse, MarketOverviewResponse, MarketTickerResponse, SubmissionPayload, SubmissionResponse } from "@/lib/types";
 
 export const MOCK_FX_RATES: FxRatesResponse = {
   base: "AUD",
@@ -22,6 +22,32 @@ export const MOCK_MARKET_OVERVIEW: MarketOverviewResponse = {
 export async function getMockMarketOverview(): Promise<MarketOverviewResponse> {
   await new Promise((resolve) => window.setTimeout(resolve, 280));
   return { ...MOCK_MARKET_OVERVIEW, as_of: new Date().toISOString() };
+}
+
+// Mirrors the backend /market/ticker board (8 AUD pairs) so mock mode renders the same strip
+// the API returns. Values are indicative-only and always flagged as such.
+export const MOCK_MARKET_TICKER: MarketTickerResponse = {
+  source: "fallback",
+  provider: "Indicative fallback",
+  as_of: new Date().toISOString(),
+  quotes: [
+    { pair: "AUD/USD", rate: 0.6512, change: 0.48 },
+    { pair: "AUD/EUR", rate: 0.6018, change: -0.27 },
+    { pair: "AUD/GBP", rate: 0.5129, change: 0.92 },
+    { pair: "AUD/JPY", rate: 98.42, change: 0.35 },
+    { pair: "AUD/NZD", rate: 1.0842, change: -0.12 },
+    { pair: "AUD/CAD", rate: 0.8945, change: 0.21 },
+    { pair: "AUD/CHF", rate: 0.5713, change: -0.18 },
+    { pair: "AUD/CNY", rate: 4.712, change: 0.09 },
+  ],
+  delayed: true,
+  refresh_seconds: 900,
+  warning: "Live market data is unavailable; showing indicative values.",
+};
+
+export async function getMockMarketTicker(): Promise<MarketTickerResponse> {
+  await new Promise((resolve) => window.setTimeout(resolve, 280));
+  return { ...MOCK_MARKET_TICKER, as_of: new Date().toISOString() };
 }
 
 export async function getMockFxRates(): Promise<FxRatesResponse> {

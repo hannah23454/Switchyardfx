@@ -20,8 +20,12 @@ service bindings are needed. `vercel dev` runs both services together locally.
    - `MONGO_URL` (required): a MongoDB connection string, e.g. from MongoDB Atlas.
      In Atlas, allow access from anywhere (`0.0.0.0/0`), since Vercel has no fixed IPs.
    - `DB_NAME` (required): the database name, e.g. `switchyard`.
-   - `TWELVE_DATA_API_KEY` (optional): live hero prices; without it the site shows
-     clearly labelled indicative rates.
+   - `TWELVE_DATA_API_KEY` (optional): live hero prices and the home-page FX ticker; without
+     it the site shows clearly labelled indicative rates. Tuning (optional):
+     `TWELVE_DATA_TICKER_SYMBOLS` (comma-separated pairs, default `AUD/USD,AUD/EUR,AUD/GBP,
+     AUD/JPY,AUD/NZD,AUD/CAD,AUD/CHF,AUD/CNY`) and `TWELVE_DATA_TICKER_TTL_SECONDS` (snapshot
+     lifetime, default `900`). Twelve Data bills 1 credit per symbol per fetch; the defaults
+     stay inside the free 800-credit/day budget.
    - `CORS_ORIGINS` (optional): only needed if another domain calls the API.
    - `RESEND_API_KEY` + `NOTIFY_EMAIL_TO` (optional): email the team about every new
      form submission via [Resend](https://resend.com). `NOTIFY_EMAIL_TO` takes one or more

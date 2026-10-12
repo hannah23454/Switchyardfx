@@ -39,6 +39,29 @@ class MarketOverviewResponse(BaseModel):
     warning: str | None = None
 
 
+class MarketTickerQuote(BaseModel):
+    pair: str
+    rate: float
+    change: float
+    # Twelve Data's /quote returns these for live rows; they stay null on the fallback path.
+    open: float | None = None
+    high: float | None = None
+    low: float | None = None
+
+
+class MarketTickerResponse(BaseModel):
+    source: Literal["live", "fallback"]
+    provider: Literal["Twelve Data", "Indicative fallback"]
+    as_of: str
+    quotes: list[MarketTickerQuote]
+    # True once a cached snapshot is older than the "fresh" window, or whenever the row is
+    # indicative — so the UI can say "Delayed" vs "Live" honestly instead of implying real time.
+    delayed: bool
+    # How often the server refreshes the snapshot; the client polls no faster than this.
+    refresh_seconds: int
+    warning: str | None = None
+
+
 class SubmissionCreate(BaseModel):
     kind: SubmissionKind
     email: EmailStr

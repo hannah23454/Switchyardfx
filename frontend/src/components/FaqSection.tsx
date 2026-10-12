@@ -6,7 +6,7 @@ import { BOOKING_URL } from "@/lib/siteLinks";
 // Common questions, answered in plain language. The same answers are published as FAQPage
 // structured data (lib/seo.ts), so search engines and AI assistants can quote them.
 export default function FaqSection() {
-  return <section className="bg-white px-5 py-20 lg:px-8 lg:py-28" aria-labelledby="faq-heading" data-testid="faq-section">
+  return <section className="bg-white px-5 py-14 lg:px-8 lg:py-20" aria-labelledby="faq-heading" data-testid="faq-section">
     <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
       <Reveal from="left">
         <SectionLabel>FAQ</SectionLabel>

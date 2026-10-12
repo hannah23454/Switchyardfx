@@ -10,7 +10,7 @@ from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Query
 
 from lib.db import db
-from models.switchyard import FxRate, FxRatesResponse, MarketCandle, MarketOverviewResponse, MarketQuote, SubmissionCreate, SubmissionResponse
+from models.switchyard import FxRate, FxRatesResponse, MarketCandle, MarketOverviewResponse, MarketQuote, MarketTickerQuote, MarketTickerResponse, SubmissionCreate, SubmissionResponse
 
 
 router = APIRouter()
@@ -25,6 +25,38 @@ TWELVE_DATA_URL = "https://api.twelvedata.com"
 RESEND_URL = "https://api.resend.com/emails"
 SUBMISSION_LABELS = {"contact": "Contact enquiry", "newsletter": "Newsletter sign-up", "hedge-guide": "Hedge Policy Guide request"}
 MARKET_SYMBOLS = ("AUD/USD", "AUD/EUR", "AUD/GBP")
+# The home-page ticker carries a wider AUD-focused board than the hero. Twelve Data charges
+# 1 credit per symbol; the free Basic plan allows 8 credits/minute and 800/day. Eight symbols
+# fetched once per TICKER_CACHE_SECONDS (900s = 15 min) stays inside both limits
+# (8 × 96 = 768 credits/day). On a paid plan, widen TWELVE_DATA_TICKER_SYMBOLS and/or lower
+# TWELVE_DATA_TICKER_TTL_SECONDS. Symbols are "BASE/QUOTE".
+DEFAULT_TICKER_SYMBOLS = ("AUD/USD", "AUD/EUR", "AUD/GBP", "AUD/JPY", "AUD/NZD", "AUD/CAD", "AUD/CHF", "AUD/CNY")
+# Indicative-only values for the ticker's default board. These are never presented as live —
+# the response carries source="fallback" and a warning whenever they are used.
+TICKER_FALLBACK = {
+    "AUD/USD": (0.6512, 0.48),
+    "AUD/EUR": (0.6018, -0.27),
+    "AUD/GBP": (0.5129, 0.92),
+    "AUD/JPY": (98.42, 0.35),
+    "AUD/NZD": (1.0842, -0.12),
+    "AUD/CAD": (0.8945, 0.21),
+    "AUD/CHF": (0.5713, -0.18),
+    "AUD/CNY": (4.7120, 0.09),
+}
+
+
+def _ticker_symbols() -> tuple[str, ...]:
+    raw = os.environ.get("TWELVE_DATA_TICKER_SYMBOLS", "").strip()
+    if not raw:
+        return DEFAULT_TICKER_SYMBOLS
+    symbols = tuple(code.strip().upper() for code in raw.split(",") if code.strip())
+    return symbols or DEFAULT_TICKER_SYMBOLS
+
+
+TICKER_SYMBOLS = _ticker_symbols()
+TICKER_CACHE_SECONDS = max(60, int(os.environ.get("TWELVE_DATA_TICKER_TTL_SECONDS", "900") or "900"))
+# A cached live snapshot older than this reads as "delayed" rather than real time.
+LIVE_FRESH_SECONDS = 60
 FALLBACK_CANDLES = [
     0.6504, 0.6508, 0.6502, 0.6511, 0.6515, 0.6509, 0.6518, 0.6522,
     0.6517, 0.6525, 0.6521, 0.6516, 0.6528, 0.6531, 0.6526, 0.6534,
@@ -37,6 +69,9 @@ FALLBACK_CANDLES = [
 LIVE_CACHE_SECONDS = 600
 FALLBACK_CACHE_SECONDS = 60
 _market_cache: tuple[float, MarketOverviewResponse] | None = None
+_ticker_cache: tuple[float, MarketTickerResponse] | None = None
+# Serialises ticker refreshes so concurrent requests can't spend the thin credit budget twice.
+_ticker_lock = asyncio.Lock()
 
 
 def _fallback_market(warning: str) -> MarketOverviewResponse:
@@ -72,6 +107,63 @@ def _parse_quote_payload(payload: dict) -> list[MarketQuote]:
     return quotes
 
 
+def _to_float(value: object) -> float | None:
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+def _fallback_ticker(warning: str) -> MarketTickerResponse:
+    now = datetime.now(timezone.utc)
+    quotes = [
+        MarketTickerQuote(pair=pair, rate=rate, change=change)
+        for pair, (rate, change) in TICKER_FALLBACK.items()
+        if pair in TICKER_SYMBOLS
+    ]
+    return MarketTickerResponse(
+        source="fallback",
+        provider="Indicative fallback",
+        as_of=now.isoformat(),
+        quotes=quotes,
+        delayed=True,
+        refresh_seconds=TICKER_CACHE_SECONDS,
+        warning=warning,
+    )
+
+
+def _parse_ticker_payload(payload: dict) -> list[MarketTickerQuote]:
+    quotes: list[MarketTickerQuote] = []
+    for symbol in TICKER_SYMBOLS:
+        row = payload.get(symbol)
+        if not isinstance(row, dict):
+            continue
+        price = row.get("close") or row.get("price")
+        if price is None:
+            continue
+        percent_change = row.get("percent_change")
+        if percent_change is None:
+            percent_change = row.get("change") or 0
+        quotes.append(
+            MarketTickerQuote(
+                pair=symbol,
+                rate=float(price),
+                change=float(percent_change),
+                open=_to_float(row.get("open")),
+                high=_to_float(row.get("high")),
+                low=_to_float(row.get("low")),
+            )
+        )
+    return quotes
+
+
+def _serve_ticker(cached_at: float, cached: MarketTickerResponse) -> MarketTickerResponse:
+    """Mark a cached live snapshot as delayed once it is older than the fresh window."""
+    if cached.source != "live" or time.monotonic() - cached_at <= LIVE_FRESH_SECONDS:
+        return cached
+    return cached.model_copy(update={"delayed": True})
+
+
 @router.get("/market/overview", response_model=MarketOverviewResponse)
 async def get_market_overview():
     global _market_cache
@@ -84,7 +176,9 @@ async def get_market_overview():
 
     api_key = os.environ.get("TWELVE_DATA_API_KEY", "").strip()
     if not api_key:
-        return _fallback_market("Live market key is not configured; showing indicative values.")
+        result = _fallback_market("Live market key is not configured; showing indicative values.")
+        _market_cache = (now_monotonic, result)
+        return result
 
     try:
         async with httpx.AsyncClient(timeout=8.0) as http:
@@ -128,6 +222,64 @@ async def get_market_overview():
 
     _market_cache = (now_monotonic, result)
     return result
+
+
+@router.get("/market/ticker", response_model=MarketTickerResponse)
+async def get_market_ticker():
+    global _ticker_cache
+    now_monotonic = time.monotonic()
+    if _ticker_cache:
+        cached_at, cached = _ticker_cache
+        ttl = TICKER_CACHE_SECONDS if cached.source == "live" else FALLBACK_CACHE_SECONDS
+        if now_monotonic - cached_at < ttl:
+            return _serve_ticker(cached_at, cached)
+
+    async with _ticker_lock:
+        # Another request may have refreshed the snapshot while we waited for the lock.
+        now_monotonic = time.monotonic()
+        if _ticker_cache:
+            cached_at, cached = _ticker_cache
+            ttl = TICKER_CACHE_SECONDS if cached.source == "live" else FALLBACK_CACHE_SECONDS
+            if now_monotonic - cached_at < ttl:
+                return _serve_ticker(cached_at, cached)
+
+        api_key = os.environ.get("TWELVE_DATA_API_KEY", "").strip()
+        if not api_key:
+            result = _fallback_ticker("Live market key is not configured; showing indicative values.")
+        else:
+            try:
+                async with httpx.AsyncClient(timeout=8.0) as http:
+                    response = await http.get(
+                        f"{TWELVE_DATA_URL}/quote",
+                        params={"symbol": ",".join(TICKER_SYMBOLS), "dp": 6, "apikey": api_key},
+                    )
+                if response.status_code == 429:
+                    result = _fallback_ticker("Twelve Data rate limit reached; showing indicative values.")
+                else:
+                    response.raise_for_status()
+                    payload = response.json()
+                    if isinstance(payload, dict) and payload.get("status") == "error":
+                        raise ValueError("provider returned an error response")
+                    # A single-symbol request returns the quote object directly; a batch is keyed by symbol.
+                    if isinstance(payload, dict) and payload.get("symbol") and "close" in payload:
+                        payload = {str(payload["symbol"]): payload}
+                    quotes = _parse_ticker_payload(payload if isinstance(payload, dict) else {})
+                    if len(quotes) < 2:
+                        raise ValueError("provider response was incomplete")
+                    result = MarketTickerResponse(
+                        source="live",
+                        provider="Twelve Data",
+                        as_of=datetime.now(timezone.utc).isoformat(),
+                        quotes=quotes,
+                        delayed=False,
+                        refresh_seconds=TICKER_CACHE_SECONDS,
+                    )
+            except (httpx.HTTPError, ValueError, TypeError, KeyError) as exc:
+                logger.info("Twelve Data ticker unavailable; using indicative fallback (%s)", type(exc).__name__)
+                result = _fallback_ticker("Live market data is temporarily unavailable; showing indicative values.")
+
+        _ticker_cache = (time.monotonic(), result)
+        return _serve_ticker(_ticker_cache[0], result)
 
 
 @router.get("/fx/rates", response_model=FxRatesResponse)
