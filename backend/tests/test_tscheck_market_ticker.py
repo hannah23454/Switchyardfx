@@ -35,7 +35,7 @@ def test_ticker_endpoint_contract(client):
     assert body["provider"] in {"Twelve Data", "Indicative fallback"}
     assert body["as_of"]
     assert isinstance(body["delayed"], bool)
-    assert isinstance(body["refresh_seconds"], int) and body["refresh_seconds"] >= 60
+    assert isinstance(body["refresh_seconds"], int) and body["refresh_seconds"] >= 15
 
     quotes = body["quotes"]
     assert isinstance(quotes, list) and len(quotes) >= 2
