@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { ArrowRight, Banknote, ChartNoAxesCombined, Check, Coins, Compass, GitCompareArrows, ShieldCheck, Truck, Workflow } from "lucide-react";
+import { ArrowRight, Banknote, ChartNoAxesCombined, Check, Coins, Compass, GitCompareArrows, Landmark, ShieldCheck, Truck, Workflow } from "lucide-react";
 import { Link } from "react-router-dom";
 import { buttonVariants } from "@/components/ui/button";
 import { Reveal, SectionLabel } from "@/components/SiteShell";
@@ -121,6 +121,31 @@ const solutions: Solution[] = [
     ctaLabel: "Discuss Funding Options",
     note: "Funding is subject to provider eligibility, credit assessment, approval and applicable terms.",
   },
+  {
+    id: "fx-treasury-advisory", index: "05", icon: Landmark, title: "FX & Treasury Advisory",
+    cardCopy: "Make more informed FX decisions with independent guidance across currency risk, provider selection, treasury processes and reporting.",
+    subtitle: "Smarter Strategy. Greater Treasury Control.",
+    intro: [
+      "Navigate currency markets with greater clarity and confidence. SwitchYard provides practical FX and treasury advisory to help businesses understand their exposures, optimise existing processes and make more informed financial decisions.",
+      "From reviewing FX provider arrangements to developing hedging strategies and improving treasury visibility, we help align your FX approach with your broader commercial objectives.",
+    ],
+    capabilities: [
+      { title: "FX Strategy & Execution Review", copy: "Assess existing FX arrangements, pricing and execution processes to identify potential improvements." },
+      { title: "Treasury Risk Management", copy: "Review currency exposures, hedging policies and risk management practices to support more consistent decision-making." },
+      { title: "Provider & Pricing Analysis", copy: "Evaluate provider capabilities, commercial arrangements and available pricing to help inform provider selection." },
+      { title: "Treasury Process Optimisation", copy: "Identify opportunities to improve workflows, reporting, visibility and operational efficiency." },
+      { title: "Technology & Reporting", copy: "Explore tools and analytics that bring greater transparency to FX positions, transactions and portfolio performance." },
+    ],
+    why: [
+      "Independent perspective across FX providers and solutions.",
+      "Practical advice tailored to your business and treasury maturity.",
+      "Greater visibility over costs, exposures and operational processes.",
+      "A clearer framework for managing FX risk and treasury decisions.",
+    ],
+    ctaHeading: "Bring Greater Clarity to Your Treasury",
+    ctaCopy: "Review your current FX approach and uncover opportunities to improve control, visibility and efficiency.",
+    ctaLabel: "Arrange a Treasury Review",
+  },
 ];
 
 const difference: [IconType, string, string][] = [
@@ -163,7 +188,7 @@ function SolutionDetail({ solution, flip }: { solution: Solution; flip: boolean 
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.35fr_0.65fr]">
         <Reveal from="left">
           <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#52796F]">Key capabilities</p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">{capabilities.map((item) => <div key={item.title} className="rounded-2xl border border-[#DCE5E1] bg-white p-6" data-testid={`solutions-capability-${id}`}><h3 className="font-bold">{item.title}</h3><p className="mt-2 text-sm leading-6 text-[#4A5A55]">{item.copy}</p></div>)}</div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">{capabilities.map((item) => <div key={item.title} className="rounded-2xl border border-[#DCE5E1] bg-white p-6 sm:odd:last:col-span-2" data-testid={`solutions-capability-${id}`}><h3 className="font-bold">{item.title}</h3><p className="mt-2 text-sm leading-6 text-[#4A5A55]">{item.copy}</p></div>)}</div>
         </Reveal>
         <Reveal from="right" delay={0.1} className="h-full">
           <div className="flex h-full flex-col rounded-[2rem] bg-[#12261F] p-7 text-white">
@@ -191,7 +216,7 @@ export default function Solutions() { return <>
 
   <section className="bg-white px-5 py-20 lg:px-8 lg:py-24" data-testid="solutions-intro-section"><div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center"><Reveal from="left"><SectionLabel>One partner</SectionLabel><h2 className="max-w-xl text-4xl font-bold tracking-[-0.04em] sm:text-5xl" data-testid="solutions-intro-heading">One Partner. A Smarter Approach to FX.</h2></Reveal><Reveal from="right" delay={0.1} className="space-y-5 text-lg leading-8 text-[#4A5A55]" data-testid="solutions-intro-copy"><p>Every business has different currency exposures, payment requirements and cash flow priorities. SwitchYard brings together the expertise, providers and solutions to help you manage them with confidence.</p><p>From everyday international payments to tailored hedging and funding options, we help simplify complexity and connect your FX strategy to the way your business operates.</p></Reveal></div></section>
 
-  <section id="solution-areas" className="scroll-mt-24 bg-[#F5F7F6] px-5 py-20 lg:px-8 lg:py-28" data-testid="solutions-cards-section"><div className="mx-auto max-w-7xl"><Reveal from="left"><SectionLabel>Our solutions</SectionLabel><h2 className="max-w-2xl text-4xl font-bold tracking-[-0.04em] sm:text-5xl" data-testid="solutions-cards-heading">Solutions Built Around Your Business.</h2></Reveal><div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{solutions.map((solution, index) => <Reveal key={solution.id} from="scale" delay={index * 0.06} className="h-full"><SolutionCard solution={solution} /></Reveal>)}</div></div></section>
+  <section id="solution-areas" className="scroll-mt-24 bg-[#F5F7F6] px-5 py-20 lg:px-8 lg:py-28" data-testid="solutions-cards-section"><div className="mx-auto max-w-7xl"><Reveal from="left"><SectionLabel>Our solutions</SectionLabel><h2 className="max-w-2xl text-4xl font-bold tracking-[-0.04em] sm:text-5xl" data-testid="solutions-cards-heading">Solutions Built Around Your Business.</h2></Reveal><div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{solutions.map((solution, index) => <Reveal key={solution.id} from="scale" delay={index * 0.06} className="h-full"><SolutionCard solution={solution} /></Reveal>)}</div></div></section>
 
   {solutions.map((solution, index) => <SolutionDetail key={solution.id} solution={solution} flip={index % 2 === 1} />)}
 

@@ -9,13 +9,13 @@
 - Book a free 15-minute FX strategy consultation: https://cal.com/hannahdevjak
 - Information on this site is general in nature and does not constitute financial advice.
 
-## Services
+## Solutions
 
-- [Forward Contracts](https://www.switchyardfx.com.au/services#forward-contracts): Lock in exchange rates today for future settlements. No upfront premium; customisable maturity dates and amounts. Used for overseas supplier payments, forecast revenue hedging, M&A costs and dividend repatriation.
-- [Options & Zero Cost Structures](https://www.switchyardfx.com.au/services#options): Protect against adverse currency moves while retaining upside. Flexible premiums and customisable strikes; suited to tenders, strategic deals and M&A.
-- [Payments & Settlements](https://www.switchyardfx.com.au/services#payments): Cross-border payments with competitive FX pricing, transparent fees, multi-currency capability and same-day or T+1 settlement, delivered through Ebury.
-- [Risk Strategy Advisory](https://www.switchyardfx.com.au/services#risk-advisory): Hedging policy development, scenario analysis and stress testing, board-level reporting frameworks.
-- [Treasury Support](https://www.switchyardfx.com.au/services#treasury-support): On-demand advisory for complex transactions.
+- [Global Payments](https://www.switchyardfx.com.au/solutions#global-payments): Cross-border payments with competitive FX execution, access to multiple providers and practical support from FX specialists.
+- [FX Risk Management](https://www.switchyardfx.com.au/solutions#fx-risk-management): Forward contracts, FX options and structured solutions, exposure management and hedging strategy.
+- [Multi-Currency Solutions](https://www.switchyardfx.com.au/solutions#multi-currency): Foreign currency accounts, international collections, currency conversion and cash flow coordination.
+- [Supplier Payment Finance](https://www.switchyardfx.com.au/solutions#supplier-payment-finance): Funding options for supplier payments and working capital through relevant funding partners, subject to eligibility and approval.
+- [FX & Treasury Advisory](https://www.switchyardfx.com.au/solutions#fx-treasury-advisory): FX strategy and execution review, treasury risk management, provider and pricing analysis, treasury process optimisation, technology and reporting.
 
 ## How SwitchYard works
 
@@ -27,7 +27,7 @@
 ## Pages
 
 - [Home](https://www.switchyardfx.com.au/): Overview, live AUD rates, FAQ
-- [Services](https://www.switchyardfx.com.au/services): Corporate FX solutions in detail
+- [Solutions](https://www.switchyardfx.com.au/solutions): Corporate FX solutions in detail
 - [About](https://www.switchyardfx.com.au/about): Mission and Ebury partnership
 - [Contact](https://www.switchyardfx.com.au/contact): Phone, email, WhatsApp and booking
 - [Market Insights](https://www.switchyardfx.com.au/insights): FX market commentary

@@ -19,6 +19,11 @@
   },
   "redirects": [
     {
+      "source": "/services",
+      "destination": "/solutions",
+      "permanent": true
+    },
+    {
       "source": "/market-insights",
       "destination": "/insights",
       "permanent": true

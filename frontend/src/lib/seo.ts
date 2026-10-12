@@ -16,7 +16,6 @@ type RouteMeta = { title: string; description: string; label: string; index?: bo
 
 export const ROUTES: Record<string, RouteMeta> = {
   "/": { label: "Home", priority: 1, title: "SwitchYard FX | Corporate FX Risk Management & Hedging, Sydney", description: "SwitchYard FX helps Australian mid-market CFOs and treasury teams manage currency risk with forward contracts, options, cross-border payments and FX hedging advice." },
-  "/services": { label: "Services", priority: 0.9, title: "Corporate FX Solutions: Forwards, Options & Payments | SwitchYard FX", description: "Forward contracts, options and zero-cost structures, same-day or T+1 international payments, FX risk strategy advisory and on-demand treasury support for Australian businesses." },
   "/solutions": { label: "Solutions", priority: 0.8, title: "FX Solutions: Hedging, Payments & Treasury | SwitchYard FX", description: "SwitchYard FX solutions for Australian mid-market businesses: forward contracts, options and zero-cost structures, cross-border payments and treasury reporting." },
   "/about": { label: "About", priority: 0.8, title: "About SwitchYard FX | FX Advisory Partner for Mid-Market CFOs", description: "SwitchYard simplifies FX risk management for mid-market CFOs, operating as a Programme Manager under Ebury Partners Australia (AFSL 520548)." },
   "/contact": { label: "Contact", priority: 0.8, title: "Contact SwitchYard FX | Book a Free FX Strategy Call, Sydney", description: "Book a free 15-minute FX strategy consultation with SwitchYard FX in Sydney. Call 02 7226 3680, email admin@switchyardfx.com.au or message us on WhatsApp." },
@@ -48,11 +47,11 @@ export const FAQS: [string, string][] = [
 ];
 
 const SERVICES: [string, string, string][] = [
-  ["forward-contracts", "Forward Contracts", "Lock in FX rates today for future settlements, with no upfront premium."],
-  ["options", "Options & Zero Cost Structures", "Protect against downside currency moves while preserving upside."],
-  ["payments", "Payments & Settlements", "Cross-border payments with competitive rates and same-day or T+1 settlement."],
-  ["risk-advisory", "Risk Strategy Advisory", "Hedging policies, scenario analysis and board reporting frameworks."],
-  ["treasury-support", "Treasury Support", "On-demand advisory for complex transactions."],
+  ["global-payments", "Global Payments", "Cross-border payments with competitive FX execution and access to multiple providers."],
+  ["fx-risk-management", "FX Risk Management", "Forward contracts, options and hedging strategies tailored to your exposures."],
+  ["multi-currency", "Multi-Currency Solutions", "Foreign currency accounts, international collections and conversion options."],
+  ["supplier-payment-finance", "Supplier Payment Finance", "Funding options for supplier payments through relevant funding partners."],
+  ["fx-treasury-advisory", "FX & Treasury Advisory", "Independent guidance on FX strategy, provider selection, treasury processes and reporting."],
 ];
 
 const organization = {
@@ -75,7 +74,7 @@ const organization = {
   knowsAbout: ["Foreign exchange risk management", "Currency hedging", "FX forward contracts", "FX options", "Zero-cost collars", "International payments", "Treasury management", "Hedging policy"],
   contactPoint: { "@type": "ContactPoint", contactType: "customer service", telephone: TELEPHONE, email: EMAIL, areaServed: "AU", availableLanguage: "English" },
   hasCredential: { "@type": "EducationalOccupationalCredential", credentialCategory: "ASIC Authorised Representative", identifier: "001318359", recognizedBy: { "@type": "GovernmentOrganization", name: "Australian Securities and Investments Commission" } },
-  hasOfferCatalog: { "@type": "OfferCatalog", name: "Corporate FX solutions", itemListElement: SERVICES.map(([id, name, description]) => ({ "@type": "Offer", itemOffered: { "@type": "Service", "@id": `${SITE_URL}/services#${id}`, name, description, url: `${SITE_URL}/services#${id}`, provider: { "@id": `${SITE_URL}/#organization` }, areaServed: "AU" } })) },
+  hasOfferCatalog: { "@type": "OfferCatalog", name: "Corporate FX solutions", itemListElement: SERVICES.map(([id, name, description]) => ({ "@type": "Offer", itemOffered: { "@type": "Service", "@id": `${SITE_URL}/solutions#${id}`, name, description, url: `${SITE_URL}/solutions#${id}`, provider: { "@id": `${SITE_URL}/#organization` }, areaServed: "AU" } })) },
 };
 
 function structuredData(path: string, meta: RouteMeta) {
