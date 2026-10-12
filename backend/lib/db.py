@@ -23,6 +23,23 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("received_at", DESCENDING)], name="received_at_desc"),
         IndexModel([("email", ASCENDING)], name="email_idx"),
     ],
+    "rewards_members": [
+        IndexModel([("email", ASCENDING)], name="email_unique", unique=True),
+        IndexModel([("created_at", DESCENDING)], name="created_at_desc"),
+    ],
+    "rewards_sessions": [
+        IndexModel([("token_hash", ASCENDING)], name="token_hash_unique", unique=True),
+        # TTL: Mongo deletes a session once its expires_at has passed.
+        IndexModel([("expires_at", ASCENDING)], name="expires_at_ttl", expireAfterSeconds=0),
+    ],
+    "rewards_vouchers": [
+        IndexModel([("member_id", ASCENDING), ("created_at", DESCENDING)], name="member_created"),
+        IndexModel([("created_at", ASCENDING)], name="created_at_asc"),
+    ],
+    "rewards_redemptions": [
+        IndexModel([("member_id", ASCENDING), ("created_at", DESCENDING)], name="member_created"),
+        IndexModel([("created_at", ASCENDING)], name="created_at_asc"),
+    ],
 }
 
 

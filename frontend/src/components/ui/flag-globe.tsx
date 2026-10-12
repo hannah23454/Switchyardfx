@@ -21,8 +21,10 @@ export interface FlagGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElement
   markers: FlagGlobeMarker[];
   /** Diameter in pixels. Omit to fill the parent's width. */
   size?: number;
-  /** Flag width in pixels. Defaults to 4.5% of the diameter. */
+  /** Flag width in pixels. Defaults to `flagScale` of the diameter. */
   flagSize?: number;
+  /** Flag width as a fraction of the diameter when `flagSize` is not set. Lower it for dense marker sets. */
+  flagScale?: number;
   /** Spin while idle. Always off when the user prefers reduced motion. */
   autoRotate?: boolean;
   /** Idle spin speed in radians per second. */
@@ -529,6 +531,7 @@ export function FlagGlobe({
   markers,
   size,
   flagSize,
+  flagScale = 0.045,
   autoRotate = true,
   rotationSpeed = 0.12,
   phi = 0,
@@ -575,7 +578,7 @@ export function FlagGlobe({
     });
   }, [flags, connections]);
   const px = measured;
-  const flagWidth = flagSize ?? Math.max(12, Math.round(px * 0.045));
+  const flagWidth = flagSize ?? Math.max(10, Math.round(px * flagScale));
   const ready = glState !== "pending";
 
   const setRootRef = React.useCallback(
@@ -1004,6 +1007,7 @@ export function FlagGlobe({
                 }}
                 className="absolute opacity-0 will-change-transform"
                 style={{ left: 0, top: 0 }}
+                data-flag={flag.code}
               >
                 <div
                   className="overflow-hidden rounded-[2px] bg-muted leading-none shadow-sm"

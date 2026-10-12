@@ -25,23 +25,28 @@ TWELVE_DATA_URL = "https://api.twelvedata.com"
 RESEND_URL = "https://api.resend.com/emails"
 SUBMISSION_LABELS = {"contact": "Contact enquiry", "newsletter": "Newsletter sign-up", "hedge-guide": "Hedge Policy Guide request"}
 MARKET_SYMBOLS = ("AUD/USD", "AUD/EUR", "AUD/GBP")
-# The home-page ticker carries a wider AUD-focused board than the hero. Twelve Data charges
-# 1 credit per symbol; the free Basic plan allows 8 credits/minute and 800/day. Eight symbols
-# fetched once per TICKER_CACHE_SECONDS (900s = 15 min) stays inside both limits
-# (8 × 96 = 768 credits/day). On a paid plan, widen TWELVE_DATA_TICKER_SYMBOLS and/or lower
-# TWELVE_DATA_TICKER_TTL_SECONDS. Symbols are "BASE/QUOTE".
-DEFAULT_TICKER_SYMBOLS = ("AUD/USD", "AUD/EUR", "AUD/GBP", "AUD/JPY", "AUD/NZD", "AUD/CAD", "AUD/CHF", "AUD/CNY")
-# Indicative-only values for the ticker's default board. These are never presented as live —
-# the response carries source="fallback" and a warning whenever they are used.
+# The home-page ticker board. Twelve Data charges 1 credit per symbol; the free Basic plan
+# allows 8 credits/minute and 800/day. Rather than spend a credit on every pair shown, the
+# ticker fetches eight USD "legs" once per TICKER_CACHE_SECONDS (900s = 15 min, so
+# 8 × 96 = 768 credits/day) and calculates every cross between them (AUD/EUR = AUD/USD ÷
+# EUR/USD), so one 8-credit fetch fills a 24-pair board. On a paid plan, add legs to
+# TWELVE_DATA_TICKER_SYMBOLS (e.g. "USD/SGD,USD/HKD") and the AUD crosses for them appear
+# automatically; lower TWELVE_DATA_TICKER_TTL_SECONDS to refresh more often. Symbols are
+# "BASE/QUOTE"; a symbol without USD is shown as fetched but is not used for crosses.
+DEFAULT_TICKER_SYMBOLS = ("AUD/USD", "EUR/USD", "GBP/USD", "NZD/USD", "USD/JPY", "USD/CAD", "USD/CHF", "USD/CNY")
+# Crosses shown after the AUD pairs and the USD majors, whenever both legs are available.
+TICKER_EXTRA_CROSSES = ("EUR/GBP", "EUR/JPY", "GBP/JPY", "EUR/CHF", "EUR/CAD", "GBP/CHF", "NZD/JPY", "CAD/JPY", "CHF/JPY")
+# Indicative-only legs (rate, % change) for the fallback board. These are never presented as
+# live — the response carries source="fallback" and a warning whenever they are used.
 TICKER_FALLBACK = {
     "AUD/USD": (0.6512, 0.48),
-    "AUD/EUR": (0.6018, -0.27),
-    "AUD/GBP": (0.5129, 0.92),
-    "AUD/JPY": (98.42, 0.35),
-    "AUD/NZD": (1.0842, -0.12),
-    "AUD/CAD": (0.8945, 0.21),
-    "AUD/CHF": (0.5713, -0.18),
-    "AUD/CNY": (4.7120, 0.09),
+    "EUR/USD": (1.0821, 0.75),
+    "GBP/USD": (1.2696, -0.44),
+    "NZD/USD": (0.6006, 0.60),
+    "USD/JPY": (151.14, -0.13),
+    "USD/CAD": (1.3736, -0.27),
+    "USD/CHF": (0.8773, -0.66),
+    "USD/CNY": (7.2359, -0.39),
 }
 
 
@@ -116,7 +121,7 @@ def _to_float(value: object) -> float | None:
 
 def _fallback_ticker(warning: str) -> MarketTickerResponse:
     now = datetime.now(timezone.utc)
-    quotes = [
+    legs = [
         MarketTickerQuote(pair=pair, rate=rate, change=change)
         for pair, (rate, change) in TICKER_FALLBACK.items()
         if pair in TICKER_SYMBOLS
@@ -125,7 +130,7 @@ def _fallback_ticker(warning: str) -> MarketTickerResponse:
         source="fallback",
         provider="Indicative fallback",
         as_of=now.isoformat(),
-        quotes=quotes,
+        quotes=_build_ticker_board(legs),
         delayed=True,
         refresh_seconds=TICKER_CACHE_SECONDS,
         warning=warning,
@@ -133,6 +138,7 @@ def _fallback_ticker(warning: str) -> MarketTickerResponse:
 
 
 def _parse_ticker_payload(payload: dict) -> list[MarketTickerQuote]:
+    """The fetched legs, in TICKER_SYMBOLS order. Rows without a price are skipped."""
     quotes: list[MarketTickerQuote] = []
     for symbol in TICKER_SYMBOLS:
         row = payload.get(symbol)
@@ -155,6 +161,48 @@ def _parse_ticker_payload(payload: dict) -> list[MarketTickerQuote]:
             )
         )
     return quotes
+
+
+def _build_ticker_board(legs: list[MarketTickerQuote]) -> list[MarketTickerQuote]:
+    """Turn the fetched legs into the displayed board: AUD crosses first, then the legs as
+    fetched (the USD majors), then TICKER_EXTRA_CROSSES. A calculated cross is marked
+    derived and carries no open/high/low, since those cannot be combined from two legs."""
+    # USD value of one unit of each currency, now and at the previous close.
+    usd_now: dict[str, float] = {"USD": 1.0}
+    usd_prev: dict[str, float] = {"USD": 1.0}
+    for leg in legs:
+        base, _, quote = leg.pair.partition("/")
+        if leg.rate <= 0 or "USD" not in (base, quote) or base == quote:
+            continue
+        previous = leg.rate / (1 + leg.change / 100) if leg.change > -100 else leg.rate
+        if quote == "USD":
+            usd_now[base], usd_prev[base] = leg.rate, previous
+        else:
+            usd_now[quote], usd_prev[quote] = 1 / leg.rate, 1 / previous
+
+    board: dict[str, MarketTickerQuote] = {}
+
+    def add_cross(base: str, quote: str) -> None:
+        pair = f"{base}/{quote}"
+        if pair in board or base == quote or base not in usd_now or quote not in usd_now:
+            return
+        rate = usd_now[base] / usd_now[quote]
+        previous = usd_prev[base] / usd_prev[quote]
+        board[pair] = MarketTickerQuote(pair=pair, rate=round(rate, 6), change=round((rate / previous - 1) * 100, 2), derived=True)
+
+    fetched = {leg.pair: leg for leg in legs}
+    for currency in usd_now:
+        if currency != "AUD":
+            if f"AUD/{currency}" in fetched:
+                board[f"AUD/{currency}"] = fetched[f"AUD/{currency}"]
+            else:
+                add_cross("AUD", currency)
+    for leg in legs:
+        board.setdefault(leg.pair, leg)
+    for pair in TICKER_EXTRA_CROSSES:
+        base, _, quote = pair.partition("/")
+        add_cross(base, quote)
+    return list(board.values())
 
 
 def _serve_ticker(cached_at: float, cached: MarketTickerResponse) -> MarketTickerResponse:
@@ -263,7 +311,7 @@ async def get_market_ticker():
                     # A single-symbol request returns the quote object directly; a batch is keyed by symbol.
                     if isinstance(payload, dict) and payload.get("symbol") and "close" in payload:
                         payload = {str(payload["symbol"]): payload}
-                    quotes = _parse_ticker_payload(payload if isinstance(payload, dict) else {})
+                    quotes = _build_ticker_board(_parse_ticker_payload(payload if isinstance(payload, dict) else {}))
                     if len(quotes) < 2:
                         raise ValueError("provider response was incomplete")
                     result = MarketTickerResponse(

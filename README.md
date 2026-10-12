@@ -21,11 +21,20 @@ service bindings are needed. `vercel dev` runs both services together locally.
      In Atlas, allow access from anywhere (`0.0.0.0/0`), since Vercel has no fixed IPs.
    - `DB_NAME` (required): the database name, e.g. `switchyard`.
    - `TWELVE_DATA_API_KEY` (optional): live hero prices and the home-page FX ticker; without
-     it the site shows clearly labelled indicative rates. Tuning (optional):
-     `TWELVE_DATA_TICKER_SYMBOLS` (comma-separated pairs, default `AUD/USD,AUD/EUR,AUD/GBP,
-     AUD/JPY,AUD/NZD,AUD/CAD,AUD/CHF,AUD/CNY`) and `TWELVE_DATA_TICKER_TTL_SECONDS` (snapshot
-     lifetime, default `900`). Twelve Data bills 1 credit per symbol per fetch; the defaults
-     stay inside the free 800-credit/day budget.
+     it the site shows clearly labelled indicative rates. The ticker fetches eight USD pairs
+     and calculates every cross between them, so one 8-credit fetch fills a 24-pair board.
+     Tuning (optional): `TWELVE_DATA_TICKER_SYMBOLS` (comma-separated pairs to fetch, default
+     `AUD/USD,EUR/USD,GBP/USD,NZD/USD,USD/JPY,USD/CAD,USD/CHF,USD/CNY`; add e.g. `USD/SGD` on a
+     paid plan and its AUD cross appears automatically) and `TWELVE_DATA_TICKER_TTL_SECONDS`
+     (snapshot lifetime, default `900`). Twelve Data bills 1 credit per symbol per fetch and the
+     free plan allows 8 per minute, so keep the default eight symbols on the free plan.
+   - `REWARDS_ADMIN_EMAIL` + `REWARDS_ADMIN_PASSWORD` (needed for Rewards): the SwitchYard staff
+     sign-in that approves Rewards members, validates uploaded vouchers and confirms reward
+     requests. `REWARDS_ADMIN_EMAIL` takes one or more comma-separated addresses that share the
+     password; use a long, unique password. Without them staff sign-in is disabled.
+     `REWARDS_WELCOME_POINTS` (optional, default `0`) credits points when a member is approved.
+     With `RESEND_API_KEY` + `NOTIFY_EMAIL_TO` set (below), staff are emailed whenever a
+     registration, voucher or reward request needs review.
    - `CORS_ORIGINS` (optional): only needed if another domain calls the API.
    - `RESEND_API_KEY` + `NOTIFY_EMAIL_TO` (optional): email the team about every new
      form submission via [Resend](https://resend.com). `NOTIFY_EMAIL_TO` takes one or more
@@ -34,7 +43,9 @@ service bindings are needed. `vercel dev` runs both services together locally.
      `@switchyardfx.com.au` or to other inboxes, verify the domain in Resend and set
      e.g. `NOTIFY_EMAIL_FROM="SwitchYard FX <leads@switchyardfx.com.au>"`. A failed email
      is logged and never blocks the submission.
-3. Deploy. Form submissions are stored in the `submissions` collection.
+3. Deploy. Form submissions are stored in the `submissions` collection; Rewards uses the
+   `rewards_members`, `rewards_sessions`, `rewards_vouchers`, `rewards_voucher_files` and
+   `rewards_redemptions` collections.
 
 The production build uses `VITE_DATA_MODE=api` (`frontend/.env.production`), so forms
 post to the real backend. Locally, `frontend/.env.example` shows the mock/api switch.

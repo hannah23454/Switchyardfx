@@ -3,42 +3,37 @@ import { HandCoins, Landmark, Send, ShieldCheck } from "lucide-react";
 import { FlagGlobe, type FlagGlobeMarker } from "@/components/ui/flag-globe";
 import { Reveal, SectionLabel } from "@/components/SiteShell";
 
-// Approved-country list for the globe. Configurable in one place: add or remove an ISO 3166-1
-// alpha-2 code and the flags, markers and corridors update together. Kept deliberately short and
-// globally spread so the pinned flags do not crowd into a cluttered ball. Sanctioned and restricted
-// jurisdictions (Russia, Belarus, Iran, North Korea, Syria, Cuba, Venezuela, Myanmar) are
-// intentionally absent — do NOT add a code here without compliance sign-off.
-const APPROVED_COUNTRIES: Array<{ code: string; label: string; confirm?: boolean }> = [
-  { code: "AU", label: "Australia" },
-  { code: "NZ", label: "New Zealand" },
-  { code: "US", label: "United States" },
-  { code: "CA", label: "Canada" },
-  { code: "MX", label: "Mexico" },
-  { code: "BR", label: "Brazil" },
-  { code: "GB", label: "United Kingdom" },
-  { code: "DE", label: "Germany" },
-  { code: "EG", label: "Egypt" },
-  { code: "ZA", label: "South Africa" },
-  { code: "NG", label: "Nigeria" },
-  { code: "AE", label: "United Arab Emirates" },
-  { code: "IN", label: "India" },
-  { code: "SG", label: "Singapore" },
-  { code: "CN", label: "China (Mainland)", confirm: true },
-  { code: "JP", label: "Japan" },
+// Approved-country list for the globe: every UN member state plus Hong Kong, minus the
+// jurisdictions below. Configurable in one place: add or remove an ISO 3166-1 alpha-2 code and
+// the flag and its marker update together (coordinates and names are built into FlagGlobe).
+const APPROVED_COUNTRIES = [
+  "AD", "AE", "AG", "AL", "AM", "AO", "AR", "AT", "AU", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BN",
+  "BO", "BR", "BS", "BT", "BW", "BZ", "CA", "CG", "CH", "CI", "CL", "CM", "CN", "CO", "CR", "CV", "CY", "CZ", "DE", "DJ",
+  "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "ES", "ET", "FI", "FJ", "FM", "FR", "GA", "GB", "GD", "GE", "GH", "GM", "GN",
+  "GQ", "GR", "GT", "GW", "GY", "HK", "HN", "HR", "HU", "ID", "IE", "IL", "IN", "IS", "IT", "JM", "JO", "JP", "KE", "KG",
+  "KH", "KI", "KM", "KN", "KR", "KW", "KZ", "LA", "LC", "LI", "LK", "LR", "LS", "LT", "LU", "LV", "MA", "MC", "MD", "ME",
+  "MG", "MH", "MK", "MN", "MR", "MT", "MU", "MV", "MW", "MX", "MY", "MZ", "NA", "NE", "NG", "NL", "NO", "NP", "NR", "NZ",
+  "OM", "PA", "PE", "PG", "PH", "PK", "PL", "PT", "PW", "PY", "QA", "RO", "RS", "RW", "SA", "SB", "SC", "SE", "SG", "SI",
+  "SK", "SL", "SM", "SN", "SR", "ST", "SV", "SZ", "TD", "TG", "TH", "TJ", "TL", "TM", "TN", "TO", "TR", "TT", "TV", "TZ",
+  "UA", "UG", "US", "UY", "UZ", "VC", "VN", "VU", "WS", "ZA", "ZM",
 ];
 
-const MARKERS: FlagGlobeMarker[] = APPROVED_COUNTRIES.map(({ code }) => ({ code }));
+// Never shown, whatever is added above: countries under comprehensive or UN/Australian sanctions
+// regimes and other high-risk jurisdictions. Do NOT remove a code here without compliance sign-off.
+const EXCLUDED_COUNTRIES = new Set([
+  "AF", "BY", "CD", "CF", "CU", "ER", "HT", "IQ", "IR", "KP", "LB", "LY", "ML", "MM", "NI", "RU", "SD", "SO", "SS", "SY",
+  "VE", "YE", "ZW",
+]);
+
+const MARKERS: FlagGlobeMarker[] = APPROVED_COUNTRIES.filter((code) => !EXCLUDED_COUNTRIES.has(code)).map((code) => ({ code }));
 
 // Dotted great-circle corridors drawn between pinned flags. Australia is the hub; a pair is only
 // drawn when both endpoints are approved markers, and only while the whole arc faces the viewer.
 const CONNECTIONS: Array<[string, string]> = [
   ["AU", "US"], ["AU", "GB"], ["AU", "DE"], ["AU", "JP"], ["AU", "SG"], ["AU", "NZ"],
-  ["AU", "CN"], ["AU", "IN"], ["AU", "AE"],
+  ["AU", "CN"], ["AU", "IN"], ["AU", "AE"], ["AU", "HK"], ["AU", "KR"], ["AU", "ID"],
+  ["AU", "ZA"], ["AU", "CA"], ["AU", "BR"], ["AU", "FR"], ["AU", "VN"], ["AU", "TH"],
 ];
-
-// Jurisdictions flagged for review. They stay on the globe only as an approved-listing decision;
-// route them live only after the client confirms the compliance position.
-const CONFIRM_COUNTRIES = APPROVED_COUNTRIES.filter((country) => country.confirm).map((country) => country.label);
 
 const SERVICES = [
   [Send, "International Payments", "Simplify cross-border payments with competitive execution, multiple providers and transparent pricing."],
@@ -85,10 +80,11 @@ export default function GlobalReach() {
             baseColor="#1f4a3a"
             glowColor="#52796F"
             markerDots
+            flagScale={0.032}
             style={{ width: "min(560px, 100%)" }}
             data-testid="global-reach-globe"
           />
-          <p className="mt-5 text-center text-xs leading-5 text-white/40" data-testid="global-reach-compliance">Indicative corridors between approved markets; sanctioned jurisdictions are excluded. {CONFIRM_COUNTRIES.join(" and ")} routes require client confirmation.</p>
+          <p className="mt-5 text-center text-xs leading-5 text-white/40" data-testid="global-reach-compliance">Indicative corridors between approved markets; sanctioned jurisdictions are excluded.</p>
         </div>
       </Reveal>
     </div>

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // Home-page FX ticker: the marquee board under the hero. Dev runs in mock mode, which mirrors
-// the labelled API fallback (INDICATIVE badge, eight AUD pairs), so the provenance contract —
+// the labelled API fallback (INDICATIVE badge, the 24-pair board), so the provenance contract —
 // the strip telling users when it is NOT real-time — is what we pin here.
 test.describe('FX ticker', () => {
   test('renders the AUD board with an honest provenance badge', async ({ page }) => {
@@ -15,9 +15,9 @@ test.describe('FX ticker', () => {
     await expect(page.getByTestId('market-ticker-badge')).toHaveText('INDICATIVE');
     await expect(page.getByTestId('market-ticker-subtext')).toContainText('indicative');
 
-    // The marquee renders the board twice (a seamless -50% loop), so 8 pairs = 16 rate cells.
-    await expect(page.getByTestId(/^ticker-quote-rate-/)).toHaveCount(16);
-    for (const pair of ['AUD/USD', 'AUD/EUR', 'AUD/GBP', 'AUD/JPY', 'AUD/NZD', 'AUD/CAD', 'AUD/CHF', 'AUD/CNY']) {
+    // The marquee renders the board twice (a seamless -50% loop), so 24 pairs = 48 rate cells.
+    await expect(page.getByTestId(/^ticker-quote-rate-/)).toHaveCount(48);
+    for (const pair of ['AUD/USD', 'AUD/EUR', 'AUD/GBP', 'AUD/JPY', 'AUD/NZD', 'AUD/CAD', 'AUD/CHF', 'AUD/CNY', 'EUR/USD', 'USD/JPY', 'EUR/GBP', 'GBP/JPY']) {
       await expect(page.getByTestId(`ticker-quote-${pair.replace('/', '-')}`).first()).toBeVisible();
     }
 
@@ -27,7 +27,8 @@ test.describe('FX ticker', () => {
 
     // An unanimated sr-only list keeps every row screen-reader readable.
     const staticList = page.getByTestId('market-ticker-static');
-    await expect(staticList.getByText('AUD/USD')).toBeVisible();
+    await expect(staticList.locator('li')).toHaveCount(24);
+    await expect(staticList.locator('li').filter({ hasText: 'AUD/EUR' })).toContainText('calculated cross');
   });
 
   // Touch devices have no "hover", so the pause is a desktop-only affordance.

@@ -94,11 +94,15 @@ test.describe('Home page', () => {
 
     await expect(page.getByTestId('global-reach-compliance')).toContainText('sanctioned jurisdictions are excluded');
 
-    // The globe shows a curated, globally spread set of pinned flags with dotted corridors.
+    // The globe shows most of the world's flags with dotted corridors, and no sanctioned ones.
     const globe = page.getByTestId('global-reach-globe');
     await expect(globe).toBeVisible();
-    const flagCount = await globe.locator('.will-change-transform').count();
-    expect(flagCount).toBeGreaterThanOrEqual(12);
+    const flagCount = await globe.locator('[data-flag]').count();
+    expect(flagCount).toBeGreaterThanOrEqual(150);
+    for (const code of ['RU', 'BY', 'IR', 'KP', 'SY', 'CU', 'VE', 'MM', 'AF']) {
+      await expect(globe.locator(`[data-flag="${code}"]`)).toHaveCount(0);
+    }
+    await expect(globe.locator('[data-flag="AU"]')).toHaveCount(1);
     await expect(globe.locator('svg polyline').first()).toBeAttached();
 
     // Global Reach is moved to sit directly beneath the statistics bar.
