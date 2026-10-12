@@ -3,6 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { BrandMark } from "@/components/BrandMark";
 
 const SESSION_KEY = "switchyard-intro-seen";
+// Hold the S/Y mark long enough to be read before the upward wipe (~2.6s + 0.28s exit).
+const HOLD_MS = 2600;
 
 export default function LandingIntro({ active }: { active: boolean }) {
   const reducedMotion = useReducedMotion();
@@ -23,7 +25,7 @@ export default function LandingIntro({ active }: { active: boolean }) {
     window.sessionStorage.setItem(SESSION_KEY, "true");
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const timeout = window.setTimeout(() => setVisible(false), reducedMotion ? 0 : 820);
+    const timeout = window.setTimeout(() => setVisible(false), reducedMotion ? 0 : HOLD_MS);
     return () => {
       window.clearTimeout(timeout);
       document.body.style.overflow = previousOverflow;

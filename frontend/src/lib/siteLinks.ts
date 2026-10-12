@@ -1,6 +1,8 @@
 // Every external link and contact detail on the site, carried over from the original
 // switchyardfx.com.au build. Change a link here and it updates everywhere it is used.
-export const BOOKING_URL = "https://cal.com/hannahdevjak";
+// Temporary placeholder: the previous cal.com link (https://cal.com/hannahdevjak) returned a
+// 404, so every booking CTA points at the Contact page until the live scheduling link is confirmed.
+export const BOOKING_URL = "/contact";
 export const PHONE_DISPLAY = "02 7226 3680";
 export const PHONE_HREF = "tel:+61272263680";
 export const EMAIL = "admin@switchyardfx.com.au";

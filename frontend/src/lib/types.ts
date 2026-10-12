@@ -31,6 +31,28 @@ export interface MarketOverviewResponse {
   warning: string | null;
 }
 
+export interface MarketTickerQuote {
+  pair: string;
+  rate: number;
+  change: number;
+  open?: number | null;
+  high?: number | null;
+  low?: number | null;
+}
+
+export interface MarketTickerResponse {
+  source: "live" | "fallback";
+  provider: "Twelve Data" | "Indicative fallback";
+  as_of: string;
+  quotes: MarketTickerQuote[];
+  /** True whenever the snapshot is the labelled fallback or a live snapshot older than the
+   *  fresh window — so the UI can say "Delayed" vs "Live" honestly instead of implying real time. */
+  delayed: boolean;
+  /** How often the server refreshes the snapshot; the client polls no faster than this. */
+  refresh_seconds: number;
+  warning: string | null;
+}
+
 export type SubmissionKind = "contact" | "newsletter" | "hedge-guide";
 
 export interface SubmissionResponse {

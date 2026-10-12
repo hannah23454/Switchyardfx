@@ -37,6 +37,10 @@ export interface FlagGlobeProps extends Omit<React.HTMLAttributes<HTMLDivElement
   markerDots?: boolean;
   /** Twinkling star field around the globe. */
   stars?: boolean;
+  /** Dotted great-circle connections between marker pairs, e.g. [["AU","US"],["AU","GB"]].
+   * A pair is ignored when either endpoint is not a marker, and an arc is only drawn while
+   * the whole path is on the visible face of the globe. */
+  connections?: Array<[string, string]>;
   /** Sphere color (any CSS color). Defaults to a blend of your background and foreground tokens. */
   baseColor?: string;
   /** Rim glow color (any CSS color). Defaults to a blend of your background and foreground tokens. */
@@ -329,6 +333,20 @@ function toCartesian([lat, lng]: [number, number]): RGB {
   return [-c * Math.cos(lo), Math.sin(la), c * Math.sin(lo)];
 }
 
+// Great-circle interpolation on the unit sphere (spherical lerp), so a connection between two
+// markers hugs the surface at the same altitude the flags float at rather than cutting a chord.
+function slerp(a: RGB, b: RGB, t: number): RGB {
+  const dot = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  if (dot > 0.9995) {
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  }
+  const omega = Math.acos(dot);
+  const sinOmega = Math.sin(omega);
+  const s0 = Math.sin((1 - t) * omega) / sinOmega;
+  const s1 = Math.sin(t * omega) / sinOmega;
+  return [a[0] * s0 + b[0] * s1, a[1] * s0 + b[1] * s1, a[2] * s0 + b[2] * s1];
+}
+
 // Same rotation cobe applies on the GPU, so DOM flags stay glued to the map.
 function project([x, y, z]: RGB, phi: number, theta: number, altitude: number) {
   const cp = Math.cos(phi);
@@ -518,6 +536,7 @@ export function FlagGlobe({
   altitude = 0.125,
   markerDots = false,
   stars = true,
+  connections,
   baseColor,
   glowColor,
   dark,
@@ -530,6 +549,7 @@ export function FlagGlobe({
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const canvasHostRef = React.useRef<HTMLDivElement>(null);
   const flagRefs = React.useRef<Array<HTMLDivElement | null>>([]);
+  const linkRefs = React.useRef<Array<SVGPolylineElement | null>>([]);
   const globeRef = React.useRef<ReturnType<typeof createGlobe> | null>(null);
   const kickRef = React.useRef<() => void>(() => {});
   const [measured, setMeasured] = React.useState(size ?? 0);
@@ -544,6 +564,16 @@ export function FlagGlobe({
     markers.map((m): MarkerTuple => [m.code, m.location ?? null, m.label ?? null]),
   );
   const flags = React.useMemo(() => placeMarkers(JSON.parse(markerKey) as MarkerTuple[]), [markerKey]);
+  // Connections resolve against the placed markers (uppercased), so a pair whose endpoint is not
+  // a marker silently drops instead of drawing a line to nowhere.
+  const links = React.useMemo(() => {
+    const byCode = new Map(flags.map((f) => [f.code, f.vector]));
+    return (connections ?? []).flatMap(([a, b]) => {
+      const from = byCode.get(a.toUpperCase());
+      const to = byCode.get(b.toUpperCase());
+      return from && to ? [{ code: `${a.toUpperCase()}${b.toUpperCase()}`, from, to }] : [];
+    });
+  }, [flags, connections]);
   const px = measured;
   const flagWidth = flagSize ?? Math.max(12, Math.round(px * 0.045));
   const ready = glState !== "pending";
@@ -574,6 +604,7 @@ export function FlagGlobe({
     velocity: 0,
     size: px,
     flags,
+    links,
   });
 
   React.useEffect(() => setMounted(true), []);
@@ -587,8 +618,9 @@ export function FlagGlobe({
     s.auto = autoRotate;
     s.size = px;
     s.flags = flags;
+    s.links = links;
     kickRef.current();
-  }, [theta, altitude, isDark, rotationSpeed, autoRotate, px, flags]);
+  }, [theta, altitude, isDark, rotationSpeed, autoRotate, px, flags, links]);
 
   React.useEffect(() => {
     live.current.phi = phi;
@@ -695,6 +727,29 @@ export function FlagGlobe({
       }
     };
 
+    const ARC_SEGMENTS = 28;
+
+    const positionArcs = () => {
+      const { links: active, size: diameter, phi: p, theta: t } = s;
+      for (let i = 0; i < active.length; i++) {
+        const el = linkRefs.current[i];
+        const link = active[i];
+        if (!el || !link || !link.to) continue;
+        const points: string[] = [];
+        let behind = false;
+        for (let k = 0; k <= ARC_SEGMENTS; k++) {
+          const sample = project(slerp(link.from, link.to, k / ARC_SEGMENTS), p, t, s.altitude);
+          if (sample.depth <= 0) behind = true;
+          points.push(`${Math.round(sample.x * diameter)} ${Math.round(sample.y * diameter)}`);
+        }
+        // Only arcs that stay entirely on the visible face are drawn; anything that slips
+        // behind the horizon disappears rather than cutting across the sphere.
+        el.setAttribute("points", points.join(" "));
+        const opacity = behind ? 0 : 0.5;
+        if (el.getAttribute("stroke-opacity") !== String(opacity)) el.setAttribute("stroke-opacity", String(opacity));
+      }
+    };
+
     const isMoving = () =>
       s.dragging || Math.abs(s.velocity) > 1e-4 || (s.auto && s.speed !== 0 && !s.reducedMotion);
 
@@ -718,6 +773,7 @@ export function FlagGlobe({
         globe.update({ phi: s.phi, theta: s.theta });
       }
       positionFlags();
+      positionArcs();
       if (isMoving() && s.onScreen && !document.hidden) raf = requestAnimationFrame(frame);
       else last = 0;
     };
@@ -905,6 +961,31 @@ export function FlagGlobe({
             if (e.pointerId === live.current.pointerId) endDrag();
           }}
         />
+
+        <div
+          aria-hidden
+          className={cx(
+            "pointer-events-none absolute inset-0 transition-opacity duration-700",
+            ready ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <svg width={px} height={px} viewBox={`0 0 ${px} ${px}`} fill="none" className="block">
+            {links.map((link, i) => (
+              <polyline
+                key={link.code}
+                ref={(el) => {
+                  linkRefs.current[i] = el;
+                }}
+                points=""
+                stroke="var(--primary, #A8C5BA)"
+                strokeOpacity={0}
+                strokeWidth={1.25}
+                strokeDasharray="1.5 6"
+                strokeLinecap="round"
+              />
+            ))}
+          </svg>
+        </div>
 
         <div
           aria-hidden

@@ -1,23 +1,54 @@
-import type { ComponentType, CSSProperties, SVGProps } from "react";
-import * as Flags from "country-flag-icons/react/3x2";
+import type { CSSProperties } from "react";
+import { HandCoins, Landmark, Send, ShieldCheck } from "lucide-react";
 import { FlagGlobe, type FlagGlobeMarker } from "@/components/ui/flag-globe";
 import { Reveal, SectionLabel } from "@/components/SiteShell";
-import { useMarketOverview } from "@/lib/useMarketOverview";
 
-// The currencies tracked on the original switchyardfx.com.au market chart, each pinned at its
-// issuer. The euro has no single country, so it sits at Brussels under the EU flag.
-const CURRENCIES = [
-  { currency: "AUD", code: "AU" }, { currency: "USD", code: "US" }, { currency: "EUR", code: "EU", location: [50.8503, 4.3517] as [number, number], label: "Eurozone" },
-  { currency: "GBP", code: "GB" }, { currency: "JPY", code: "JP" }, { currency: "NZD", code: "NZ" },
-  { currency: "CAD", code: "CA" }, { currency: "CNY", code: "CN" }, { currency: "SGD", code: "SG" },
-  { currency: "HKD", code: "HK" }, { currency: "INR", code: "IN" }, { currency: "MXN", code: "MX" },
+// Approved-country list for the globe. Configurable in one place: add or remove an ISO 3166-1
+// alpha-2 code and the flags, markers and corridors update together. Kept deliberately short and
+// globally spread so the pinned flags do not crowd into a cluttered ball. Sanctioned and restricted
+// jurisdictions (Russia, Belarus, Iran, North Korea, Syria, Cuba, Venezuela, Myanmar) are
+// intentionally absent — do NOT add a code here without compliance sign-off.
+const APPROVED_COUNTRIES: Array<{ code: string; label: string; confirm?: boolean }> = [
+  { code: "AU", label: "Australia" },
+  { code: "NZ", label: "New Zealand" },
+  { code: "US", label: "United States" },
+  { code: "CA", label: "Canada" },
+  { code: "MX", label: "Mexico" },
+  { code: "BR", label: "Brazil" },
+  { code: "GB", label: "United Kingdom" },
+  { code: "DE", label: "Germany" },
+  { code: "EG", label: "Egypt" },
+  { code: "ZA", label: "South Africa" },
+  { code: "NG", label: "Nigeria" },
+  { code: "AE", label: "United Arab Emirates" },
+  { code: "IN", label: "India" },
+  { code: "SG", label: "Singapore" },
+  { code: "CN", label: "China (Mainland)", confirm: true },
+  { code: "JP", label: "Japan" },
 ];
-const MARKERS: FlagGlobeMarker[] = CURRENCIES.map(({ code, location, label }) => ({ code, location, label }));
+
+const MARKERS: FlagGlobeMarker[] = APPROVED_COUNTRIES.map(({ code }) => ({ code }));
+
+// Dotted great-circle corridors drawn between pinned flags. Australia is the hub; a pair is only
+// drawn when both endpoints are approved markers, and only while the whole arc faces the viewer.
+const CONNECTIONS: Array<[string, string]> = [
+  ["AU", "US"], ["AU", "GB"], ["AU", "DE"], ["AU", "JP"], ["AU", "SG"], ["AU", "NZ"],
+  ["AU", "CN"], ["AU", "IN"], ["AU", "AE"],
+];
+
+// Jurisdictions flagged for review. They stay on the globe only as an approved-listing decision;
+// route them live only after the client confirms the compliance position.
+const CONFIRM_COUNTRIES = APPROVED_COUNTRIES.filter((country) => country.confirm).map((country) => country.label);
+
+const SERVICES = [
+  [Send, "International Payments", "Simplify cross-border payments with competitive execution, multiple providers and transparent pricing."],
+  [Landmark, "Collections & Receivables", "Manage international receipts and multi-currency exposures with greater visibility, streamlined reconciliation and reduced FX costs."],
+  [ShieldCheck, "Hedging & Risk Management", "Protect margins with tailored forwards, options and structured hedging strategies aligned to your exposures and risk appetite."],
+  [HandCoins, "Trade Finance & Funding", "Access funding solutions supporting international purchasing, working capital and business growth."],
+] as const;
+
 // Rotation that turns Australia toward the viewer on first paint.
 const FACE_AUSTRALIA = 2.4;
-
-type FlagSvg = ComponentType<SVGProps<SVGSVGElement>>;
-const flagFor = (code: string) => (Flags as unknown as Record<string, FlagSvg | undefined>)[code];
 
 // The globe reads the shadcn theme tokens, so this dark section re-scopes them to the brand.
 const darkTokens = {
@@ -31,56 +62,34 @@ const darkTokens = {
 } as CSSProperties;
 
 export default function GlobalReach() {
-  // Shares the hero's live market query, so no extra request is made.
-  const market = useMarketOverview();
-  const quotes = market.data?.quotes ?? [];
-  const live = market.data?.source === "live";
-
-  return <section className="relative overflow-hidden bg-[#12261F] px-5 py-20 text-white lg:px-8 lg:py-28" style={darkTokens} data-testid="global-reach-section">
+  return <section className="relative overflow-hidden bg-[#12261F] px-5 py-14 text-white lg:px-8 lg:py-20" style={darkTokens} data-testid="global-reach-section">
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_45%,rgba(82,121,111,.28),transparent_45%)]" />
     <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_1.05fr]">
       <Reveal from="left">
-        <SectionLabel>Global reach</SectionLabel>
-        <h2 className="text-4xl font-bold leading-[1.05] tracking-[-0.045em] sm:text-5xl" data-testid="global-reach-heading">From Australia<br /><span className="text-[#A8C5BA]">to the world.</span></h2>
-        <p className="mt-6 max-w-lg text-lg leading-8 text-white/60">Robust and fully secure payment infrastructure to enable reliable transfers across the globe, with live AUD pricing on the corridors you use most.</p>
+        <SectionLabel>Global Reach</SectionLabel>
+        <h2 className="text-4xl font-bold leading-[1.05] tracking-[-0.045em] sm:text-5xl" data-testid="global-reach-heading">Solutions Enabling <span className="text-[#A8C5BA]">Global Trade</span></h2>
+        <p className="mt-6 max-w-lg text-lg leading-8 text-white/60" data-testid="global-reach-description">From international payments to hedging and funding, SwitchYard FX brings greater clarity, control and efficiency to your global FX requirements.</p>
 
-        <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.04] p-5" data-testid="global-reach-rates">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.16em] text-white/50">
-            <span>AUD pricing</span>
-            <span className={`flex items-center gap-2 ${live ? "text-[#6EE7A8]" : "text-[#E8D9A0]"}`}><span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-[#6EE7A8]" : "bg-[#E8D9A0]"}`} />{market.isLoading ? "Updating" : live ? "Live" : "Indicative"}</span>
-          </div>
-          <div className="mt-4 grid gap-2">
-            {(quotes.length ? quotes : [{ pair: "AUD/USD" }, { pair: "AUD/EUR" }, { pair: "AUD/GBP" }]).map((quote) => {
-              const rate = "rate" in quote ? quote.rate : undefined;
-              const change = "change" in quote ? quote.change : undefined;
-              const Flag = flagFor(CURRENCIES.find((c) => c.currency === quote.pair.split("/")[1])?.code ?? "");
-              return <div key={quote.pair} className="flex items-center justify-between rounded-xl bg-white/[0.04] px-4 py-3" data-testid={`global-rate-${quote.pair.replace("/", "-").toLowerCase()}`}>
-                <span className="flex items-center gap-3 font-bold">{Flag && <span className="block h-3.5 w-5 overflow-hidden rounded-[2px]"><Flag width="100%" height="100%" /></span>}{quote.pair}</span>
-                <span className="flex items-baseline gap-3"><span className="text-lg font-bold tabular-nums">{rate !== undefined ? rate.toFixed(4) : "—"}</span>{change !== undefined && <span className={`text-xs font-bold tabular-nums ${change >= 0 ? "text-[#6EE7A8]" : "text-red-300"}`}>{change >= 0 ? "+" : ""}{change.toFixed(2)}%</span>}</span>
-              </div>;
-            })}
-          </div>
-        </div>
-
-        <p className="mt-8 text-xs font-bold uppercase tracking-[0.16em] text-white/50">{CURRENCIES.length} currencies in our market coverage</p>
-        <ul className="mt-3 flex flex-wrap gap-2" data-testid="global-reach-currencies">
-          {CURRENCIES.map(({ currency, code }) => { const Flag = flagFor(code); return <li key={currency} className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-white/80">{Flag && <span className="block h-3 w-[18px] overflow-hidden rounded-[2px]"><Flag width="100%" height="100%" /></span>}{currency}</li>; })}
-        </ul>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2">{SERVICES.map(([Icon, title, copy], index) => <div key={title} className="h-full rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm" data-testid={`global-service-card-${index + 1}`}><div className="grid h-10 w-10 place-items-center rounded-lg bg-[#A8C5BA]/10 text-[#A8C5BA]"><Icon size={19} /></div><h3 className="mt-4 text-base font-bold" data-testid={`global-service-title-${index + 1}`}>{title}</h3><p className="mt-2 text-sm leading-6 text-white/55">{copy}</p></div>)}</div>
       </Reveal>
 
       <Reveal from="scale" delay={0.1} className="flex justify-center">
-        <FlagGlobe
-          markers={MARKERS}
-          dark
-          phi={FACE_AUSTRALIA}
-          altitude={0.2}
-          rotationSpeed={0.16}
-          baseColor="#1f4a3a"
-          glowColor="#52796F"
-          markerDots
-          style={{ width: "min(560px, 100%)" }}
-          data-testid="global-reach-globe"
-        />
+        <div className="w-full max-w-[560px]">
+          <FlagGlobe
+            markers={MARKERS}
+            connections={CONNECTIONS}
+            dark
+            phi={FACE_AUSTRALIA}
+            altitude={0.2}
+            rotationSpeed={0.16}
+            baseColor="#1f4a3a"
+            glowColor="#52796F"
+            markerDots
+            style={{ width: "min(560px, 100%)" }}
+            data-testid="global-reach-globe"
+          />
+          <p className="mt-5 text-center text-xs leading-5 text-white/40" data-testid="global-reach-compliance">Indicative corridors between approved markets; sanctioned jurisdictions are excluded. {CONFIRM_COUNTRIES.join(" and ")} routes require client confirmation.</p>
+        </div>
       </Reveal>
     </div>
   </section>;

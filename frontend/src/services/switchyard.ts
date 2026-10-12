@@ -1,6 +1,6 @@
 import { apiGet, apiPost } from "@/lib/api";
-import { createMockSubmission, getMockFxRates, getMockMarketOverview } from "@/data/mockSwitchyard";
-import type { FxRatesResponse, MarketOverviewResponse, SubmissionPayload, SubmissionResponse } from "@/lib/types";
+import { createMockSubmission, getMockFxRates, getMockMarketOverview, getMockMarketTicker } from "@/data/mockSwitchyard";
+import type { FxRatesResponse, MarketOverviewResponse, MarketTickerResponse, SubmissionPayload, SubmissionResponse } from "@/lib/types";
 
 export type SwitchyardDataMode = "mock" | "api";
 
@@ -15,6 +15,15 @@ export const switchyardService = {
       return await apiGet<MarketOverviewResponse>("/market/overview");
     } catch {
       return getMockMarketOverview();
+    }
+  },
+
+  async getMarketTicker(): Promise<MarketTickerResponse> {
+    if (SWITCHYARD_DATA_MODE === "mock") return getMockMarketTicker();
+    try {
+      return await apiGet<MarketTickerResponse>("/market/ticker");
+    } catch {
+      return getMockMarketTicker();
     }
   },
 

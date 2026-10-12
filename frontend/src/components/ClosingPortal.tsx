@@ -68,7 +68,7 @@ const styles = `
   @media(any-pointer:coarse){[data-closing-scroll]{bottom:13%;}}
   @media(max-width:450px){[data-closing-eyebrow]{font-size:11px;}[data-closing-support]{font-size:14px;}[data-closing-portal] [data-gp-caption]{top:calc(var(--gp-word-bottom,50%) + 76px);}}
   @media(max-height:479px){[data-closing-support]{top:calc(var(--gp-word-bottom,50%) + 16px);}[data-closing-portal] [data-gp-caption]{top:calc(var(--gp-word-bottom,50%) + 60px);}[data-closing-scroll]{display:none;}}
-  [data-closing-portal] [data-gp-content]{padding:6.5rem clamp(1.25rem,5vw,5rem) 6.5rem;font-family:inherit;}
+  [data-closing-portal] [data-gp-content]{padding:4.5rem clamp(1.25rem,5vw,5rem) 4.5rem;font-family:inherit;}
   [data-closing-portal] section,[data-closing-portal] [data-gp-caption]{font-family:inherit;}
   [data-closing-copy]{display:flex;width:min(100%,80rem);margin:auto;flex-direction:column;align-items:flex-start;gap:clamp(2rem,5svh,3.5rem);}
   [data-closing-copy] h2{max-width:48rem;margin:0;color:#12261F;font-size:clamp(2rem,1.2rem + 2.6vw,3.25rem);font-weight:700;line-height:1.1;letter-spacing:-.03em;text-wrap:balance;}
@@ -105,6 +105,7 @@ export default function ClosingPortal() {
           fontFamily={FACE}
           fontWeight={700}
           enterLabel="Step inside"
+          scrollLength={1.2}
           background={<BrandField />}
           style={{ "--gp-paper": "#12261F", "--gp-ink": "#FFFFFF", "--gp-field": "#FFFFFF", "--gp-foreground": "#12261F", fontFamily: FACE }}
           front={<>
@@ -115,6 +116,6 @@ export default function ClosingPortal() {
         >
           <Content />
         </GlyphPortal>
-      : <section className="relative isolate overflow-hidden bg-white px-5 py-24 lg:px-8"><div className="absolute inset-0 -z-10"><BrandField /></div><Content /></section>}
+      : <section className="relative isolate overflow-hidden bg-white px-5 py-16 lg:px-8"><div className="absolute inset-0 -z-10"><BrandField /></div><Content /></section>}
   </div>;
 }

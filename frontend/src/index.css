@@ -160,7 +160,14 @@ html[dir="rtl"] .lucide { transform: scaleX(-1); }
 /* Sections slide in from the sides; never let that widen the page. */
 .site-main { overflow-x: clip; }
 .site-main > section:first-child:not([data-testid="home-hero-section"]) { padding-top: clamp(7rem, 10vw, 9rem); }
-.market-ticker { animation: market-ticker 20s linear infinite; }
+/* Home FX ticker: an infinite marquee that loops over a duplicated track and pauses on hover.
+   The mask fades items at the edges; reduced motion disables the slide and lets the quotes wrap. */
+.ticker-viewport {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+.ticker-track { animation: market-ticker var(--ticker-duration, 45s) linear infinite; }
+.ticker-viewport:hover .ticker-track { animation-play-state: paused; }
 
 @keyframes market-ticker {
   from { transform: translateX(0); }
@@ -168,7 +175,8 @@ html[dir="rtl"] .lucide { transform: scaleX(-1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .market-ticker { animation: none; }
+  .ticker-viewport { mask-image: none; -webkit-mask-image: none; overflow-x: visible; }
+  .ticker-track { animation: none; flex-wrap: wrap; width: auto; row-gap: .5rem; }
 }
 
 @media (max-width: 639px) {
