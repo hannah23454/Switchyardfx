@@ -1,18 +1,17 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// The header order is Home | Services | Solutions | Resources | About | Contact, and every
+// The header order is Home | Solutions | Resources | About | Contact, and every
 // item must land on a real route (no broken links). `marker` is a page element that proves
 // the destination actually rendered.
 const NAV: [slug: string, path: string, marker: string][] = [
   ['home', '/', 'hero-heading'],
-  ['services', '/services', 'services-hero'],
   ['solutions', '/solutions', 'solutions-page-heading'],
   ['resources', '/resources', 'resources-heading'],
   ['about', '/about', 'page-hero-heading'],
   ['contact', '/contact', 'contact-heading'],
 ];
 
-const EXPECTED = ['Home', 'Services', 'Solutions', 'Resources', 'About', 'Contact'];
+const EXPECTED = ['Home', 'Solutions', 'Resources', 'About', 'Contact'];
 const urlFor = (path: string) => new RegExp(path === '/' ? '/$' : path.replace(/\//g, '\\/') + '$');
 
 // Wait until the shell has mounted and the opening splash has cleared the nav.
@@ -52,7 +51,7 @@ test.describe('Header navigation', () => {
     await page.getByTestId('mobile-menu-close-button').click();
     await expect(page.getByTestId('mobile-menu')).toHaveCount(0);
 
-    // Visit Services..Contact then Home last, so every click changes the pathname and the
+    // Visit Solutions..Contact then Home last, so every click changes the pathname and the
     // route-change effect closes the drawer (clicking the current route would leave it open).
     const order = [...NAV.slice(1), NAV[0]];
     for (const [slug, path, marker] of order) {
