@@ -416,20 +416,27 @@ async def submit_voucher(input: VoucherCreate, member: dict = Depends(_require_m
 
 @router.post("/redemptions", response_model=RewardsMessage, status_code=201)
 async def request_reward(input: RedemptionCreate, member: dict = Depends(_require_member)):
+    custom = input.reward_id == "golden-voucher"
     reward = CATALOGUE_BY_ID.get(input.reward_id)
-    if not reward:
+    if not reward and not custom:
         raise HTTPException(status_code=404, detail="That reward is no longer available.")
-    if reward.points is None:
+    if not custom and reward.points is None:
         raise HTTPException(status_code=409, detail="Points pricing for this reward is still being confirmed.")
+    if custom and (input.points is None or not input.note.strip()):
+        raise HTTPException(status_code=422, detail="Golden voucher requests need points and a note describing what you would like.")
+    cost = input.points if custom else reward.points * input.quantity
+    if cost > 1_000_000:
+        raise HTTPException(status_code=422, detail="A request cannot exceed 1,000,000 points.")
+    title = "Golden voucher" if custom else f"{reward.title}{f' × {input.quantity}' if input.quantity > 1 else ''}"
     not_enough = HTTPException(status_code=400, detail="You don't have enough vested points for this reward.")
     vouchers, redemptions = await _member_activity(member["_id"])
-    if _points(member, vouchers, redemptions).vested < reward.points:
+    if _points(member, vouchers, redemptions).vested < cost:
         raise not_enough
     result = await db.rewards_redemptions.insert_one({
         "member_id": member["_id"],
-        "reward_id": reward.id,
-        "reward_title": reward.title,
-        "points": reward.points,
+        "reward_id": input.reward_id,
+        "reward_title": title,
+        "points": cost,
         "note": input.note.strip(),
         "status": "pending",
         "created_at": _now(),
@@ -443,9 +450,9 @@ async def request_reward(input: RedemptionCreate, member: dict = Depends(_requir
         raise not_enough
     await _notify_team(
         f"Rewards request to confirm: {member['name']}",
-        [("Member", f"{member['name']} · {member['company']}"), ("Email", member["email"]), ("Reward", reward.title), ("Points", str(reward.points)), ("Note", input.note.strip())],
+        [("Member", f"{member['name']} · {member['company']}"), ("Email", member["email"]), ("Reward", title), ("Points", str(cost)), ("Note", input.note.strip())],
     )
-    return RewardsMessage(message=f"Request for “{reward.title}” submitted. SwitchYard will confirm your voucher.")
+    return RewardsMessage(message=f"Request for “{title}” submitted. SwitchYard will confirm your voucher.")
 
 
 # --- staff routes ---------------------------------------------------------------------------------

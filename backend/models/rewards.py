@@ -41,6 +41,8 @@ class VoucherCreate(BaseModel):
 
 class RedemptionCreate(BaseModel):
     reward_id: str = Field(min_length=1, max_length=60)
+    points: int | None = Field(default=None, gt=0, le=1_000_000)
+    quantity: int = Field(default=1, ge=1, le=100)
     note: str = Field(default="", max_length=1000)
 
 
