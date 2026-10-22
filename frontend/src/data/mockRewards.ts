@@ -168,16 +168,20 @@ export const mockRewards: RewardsService = {
     return ok("Voucher uploaded. SwitchYard will validate it before points are credited.");
   },
 
-  async requestReward(rewardId, note) {
+  async requestReward(rewardId, note, quantity = 1, requestedPoints) {
     await delay();
     const member = signedInMember();
     const reward = CATALOGUE.find((item) => item.id === rewardId);
-    if (!reward) throw new Error("That reward is no longer available.");
-    if (reward.points === null) throw new Error("Points pricing for this reward is still being confirmed.");
-    if (points(member).vested < reward.points) throw new Error("You don't have enough vested points for this reward.");
-    const redemption: RewardsRedemption = { id: uid(), reward_id: reward.id, reward_title: reward.title, points: reward.points, note: note.trim(), status: "pending", created_at: nowISO() };
+    const custom = rewardId === "golden-voucher";
+    if (!reward && !custom) throw new Error("That reward is no longer available.");
+    if (!custom && reward?.points === null) throw new Error("Points pricing for this reward is still being confirmed.");
+    const cost = custom ? Number(requestedPoints) : (reward?.points ?? 0) * quantity;
+    if (!Number.isInteger(cost) || cost <= 0 || cost > 1_000_000) throw new Error("Enter a valid points amount.");
+    if (points(member).vested < cost) throw new Error("You don't have enough vested points for this reward.");
+    const title = custom ? "Golden voucher" : `${reward!.title}${quantity > 1 ? ` × ${quantity}` : ""}`;
+    const redemption: RewardsRedemption = { id: uid(), reward_id: custom ? "golden-voucher" : reward!.id, reward_title: title, points: cost, note: note.trim(), status: "pending", created_at: nowISO() };
     update((m) => m.id === member.id, (m) => ({ ...m, redemptions: [redemption, ...m.redemptions] }));
-    return ok(`Request for “${reward.title}” submitted. SwitchYard will confirm your voucher.`);
+    return ok(`Request for “${title}” submitted. SwitchYard will confirm your voucher.`);
   },
 
   async adminOverview(): Promise<RewardsAdminOverview> {

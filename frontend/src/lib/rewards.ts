@@ -36,7 +36,7 @@ export interface RewardsService {
   adminLogin(email: string, password: string): Promise<RewardsSession>;
   logout(): Promise<RewardsMessage>;
   submitVoucher(input: VoucherInput): Promise<RewardsMessage>;
-  requestReward(rewardId: string, note: string): Promise<RewardsMessage>;
+  requestReward(rewardId: string, note: string, quantity?: number, points?: number): Promise<RewardsMessage>;
   adminOverview(): Promise<RewardsAdminOverview>;
   setMemberStatus(id: string, status: "approved" | "rejected"): Promise<RewardsMessage>;
   setVoucherStatus(id: string, status: "approved" | "rejected"): Promise<RewardsMessage>;
@@ -57,7 +57,7 @@ const apiRewards: RewardsService = {
   adminLogin: (email, password) => apiPost<RewardsSession>("/rewards/admin/login", { email, password }),
   logout: () => apiPost<RewardsMessage>("/rewards/logout"),
   submitVoucher: (input) => apiPost<RewardsMessage>("/rewards/vouchers", input),
-  requestReward: (rewardId, note) => apiPost<RewardsMessage>("/rewards/redemptions", { reward_id: rewardId, note }),
+  requestReward: (rewardId, note, quantity = 1, points) => apiPost<RewardsMessage>("/rewards/redemptions", { reward_id: rewardId, note, quantity, ...(points === undefined ? {} : { points }) }),
   adminOverview: () => apiGet<RewardsAdminOverview>("/rewards/admin/overview"),
   setMemberStatus: (id, status) => apiPost<RewardsMessage>(`/rewards/admin/members/${id}/status`, { status }),
   setVoucherStatus: (id, status) => apiPost<RewardsMessage>(`/rewards/admin/vouchers/${id}/status`, { status }),
